@@ -17,11 +17,32 @@
 
 ## Deployment
 ### Pre-Requisites
-#### **AWS Account:** This presumes you have an AWS Account and `aws` cli configured.
+#### **AWS Account:**
+Configuring AWS Cli
+#### CMDLINE Client install (MacOS)
 
+Download the client
+```
+curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
+```
+
+Install it with sudo (to use for all users)
+```
+sudo installer -pkg ./AWSCLIV2.pkg -target /
+```
+
+Now let's configure our client env
+```
+aws configure
+```
+
+Answer all the questions with the info you got. If you already have a profile configured, you can add a named profile to your credentials
+
+---
 #### **EKS Cluster**
 
-The first tool we will use is called `eksctl`.
+The tool to use for managing EKS is called `eksctl`.
+
 ### Installing or updating `eksctl` 
 MacOS: Install `eksctl` via Homebrew
 
@@ -79,8 +100,12 @@ Once the cluster is up, add it to your kube config
 aws eks update-kubeconfig --name mq-cluster-east --region us-east-1
 Added new context arn:aws:eks:us-east-1:748107796891:cluster/mq-cluster to /Users/kramerro/.kube/config
 ```
+---
+
 - RDS/DB Schema
+---
 - Registry - images
+---
 #### **Trial sign-up for Sterling MFT**
 - Using your IBM ID, submit for SFG trial request using: https://www.ibm.com/account/reg/us-en/signup?formid=urx-51433
 - Use the access token for IBM Entitled Registry from Step 1 to pull and stage images (in their internal image repository, if necessary).
