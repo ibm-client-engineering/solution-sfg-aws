@@ -105,7 +105,106 @@ Added new context arn:aws:eks:us-east-1:748107796891:cluster/mq-cluster to /User
 ```
 ---
 
-- RDS/DB Schema
+#### **RDS/DB Schema**
+
+Create a security group. We're going to get our vpc for our sterling cluster first and use that here since we don't have any default vpc.
+
+Let's export the following env vars
+```
+export clustername=sterling-mft-east
+export region=us-east-1
+```
+
+Now let's retrieve our vpc id
+```
+vpc_id=$(aws eks describe-cluster \
+    --name $clustername \
+    --query "cluster.resourcesVpcConfig.vpcId" \
+    --region $region \
+    --output text)
+```
+And with those vars set, let's now create our security group
+```
+security_group_id=$(aws ec2 create-security-group \
+    --group-name RDSSterlingSecGroup \
+    --description "RDS Access to Sterling Cluster" \
+    --vpc-id $vpc_id \
+    --region $region \
+    --output text)
+```
+Retrieve the CIDR range for your cluster's VPC and store it in a variable for use in a later step.
+
+```
+cidr_range=$(aws ec2 describe-vpcs \
+    --vpc-ids $vpc_id \
+    --query "Vpcs[].CidrBlock" \
+    --output text \
+    --region $region)
+```
+
+Let's authorize access to that group for Oracle which uses port 1521
+
+```
+aws ec2 authorize-security-group-ingress \
+    --group-id $security_group_id \
+    --protocol tcp \
+    --port 1521 \
+    --region $region \
+    --cidr $cidr_range
+```
+
+Let's create a db subnet group. First get our existing subnet ids from our vpc
+
+```
+aws ec2 describe-subnets \
+    --filters "Name=vpc-id,Values=$vpc_id" \
+    --query 'Subnets[*].{SubnetId: SubnetId,AvailabilityZone: AvailabilityZone,CidrBlock: CidrBlock}' \
+    --region $region \
+    --output table
+```
+
+```
+----------------------------------------------------------------------
+|                           DescribeSubnets                          |
++------------------+--------------------+----------------------------+
+| AvailabilityZone |     CidrBlock      |         SubnetId           |
++------------------+--------------------+----------------------------+
+|  us-east-1a      |  192.168.0.0/19    |  subnet-08ddff738c8fac2db  |
+|  us-east-1b      |  192.168.32.0/19   |  subnet-0e11acfc0a427d52d  |
+|  us-east-1b      |  192.168.128.0/19  |  subnet-0dd9067f0f828e49c  |
+|  us-east-1c      |  192.168.160.0/19  |  subnet-0da98130d8b80f210  |
+|  us-east-1a      |  192.168.96.0/19   |  subnet-02b159221adb9b790  |
+|  us-east-1c      |  192.168.64.0/19   |  subnet-01987475cac20b583  |
++------------------+--------------------+----------------------------+
+```
+
+Now let's create our db subnet group
+
+```
+aws rds create-db-subnet-group \
+--db-subnet-group-name "sterling-rds-subnet-group" \
+--db-subnet-group-description "This is our cluster subnet ids authorized and grouped for RDS" \
+--subnet-ids "subnet-08ddff738c8fac2db" "subnet-0e11acfc0a427d52d" "subnet-0dd9067f0f828e49c" "subnet-0da98130d8b80f210" "subnet-02b159221adb9b790" "subnet-01987475cac20b583"
+```
+
+
+Now with all those prerequisites completed, let's create the RDS instance:
+
+```
+aws rds create-db-instance \
+    --engine oracle-ee \
+    --db-instance-identifier sterling-mft-db \
+    --allocated-storage 300 \
+    --multi-az \
+    --db-subnet-group-name sterling-rds-subnet-group \
+    --db-instance-class db.t3.large \
+    --vpc-security-group-ids $security_group_id \
+    --master-username oracleuser \
+    --master-user-password oraclepass \
+    --backup-retention-period 3
+```
+
+
 ---
 #### **Registry - images**
 We are going to set up an Amazon Elastic Container Registry. For this we will first create a repository
