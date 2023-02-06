@@ -107,7 +107,47 @@ Added new context arn:aws:eks:us-east-1:748107796891:cluster/mq-cluster to /User
 
 - RDS/DB Schema
 ---
-- Registry - images
+#### **Registry - images**
+We are going to set up an Amazon Elastic Container Registry. For this we will first create a repository
+
+```
+aws ecr create-repository \
+--repository-name sterling-mft-repo \
+--region us-east-1 \
+--encryption-configuration encryptionType=AES256
+```
+Pay attention to the output of the above command. It will look similar to this:
+```
+{
+    "repository": {
+        "repositoryArn": "arn:aws:ecr:us-east-1:748107796891:repository/sterling-mft-repo",
+        "registryId": "748107796891",
+        "repositoryName": "sterling-mft-repo",
+        "repositoryUri": "748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo",
+        "createdAt": "2023-02-03T15:45:52-05:00",
+        "imageTagMutability": "MUTABLE",
+        "imageScanningConfiguration": {
+            "scanOnPush": false
+        },
+        "encryptionConfiguration": {
+            "encryptionType": "AES256"
+        }
+    }
+}
+```
+Make a note of the `repositoryUri`.
+
+We can retrieve the login password token with the following command. This retrieves and exports the token as an env var called `login_passwd`.
+```
+login_passwd=$(aws ecr get-login-password --region us-east-1)
+```
+Now we need to create a secret in the cluster to map the token. We need the `repositoryUri` from above for `--docker-server`
+```
+kubectl create secret docker-registry sterling-secret \
+--docker-server=https://748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo \
+--docker-username=AWS \ 
+--docker-password="$login_passwd"
+```
 ---
 #### **Trial sign-up for Sterling MFT**
 - Using your IBM ID, submit for SFG trial request using: https://www.ibm.com/account/reg/us-en/signup?formid=urx-51433
