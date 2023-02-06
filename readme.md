@@ -79,7 +79,7 @@ Run the `eksctl` command below to create your first cluster and perform the foll
 -   Specify our three AZs as `us-east-1a, us-east-1b, us-east-1c`
 ```
 eksctl create cluster \
---name <CLUSTERNAME> \
+--name sterling-mft-east \
 --version 1.23 \
 --region us-east-1 \
 --zones us-east-1a,us-east-1b,us-east-1c \
@@ -93,7 +93,10 @@ eksctl create cluster \
 
 Associate an IAM oidc provider with the cluster
 ```
-eksctl utils associate-iam-oidc-provider --region=us-east-1 --cluster=mft-sterling-east --approve
+eksctl utils associate-iam-oidc-provider \
+--region=us-east-1 \
+--cluster=mft-sterling-east \
+--approve
 ```
 Once the cluster is up, add it to your kube config
 ```
