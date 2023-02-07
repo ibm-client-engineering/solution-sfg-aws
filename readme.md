@@ -635,6 +635,91 @@ kubectl create secret docker-registry sterling-secret \
 --docker-password=$login_passwd \
 --docker-email="kramerro@us.ibm.com"
 ```
+
+#### **Install NGINX Ingress**
+
+Create an IAM policy.
+
+Download an IAM policy for the AWS Load Balancer Controller that allows it to make calls to AWS APIs on your behalf.
+
+```
+curl -o iam_loadbalancer_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.4/docs/install/iam_policy.json
+```  
+    
+Create an IAM policy using the policy downloaded in the previous step.    
+```
+aws iam create-policy \
+    --policy-name AWSLoadBalancerControllerIAMPolicy \
+    --policy-document file://iam_policy.json
+
+{
+    "Policy": {
+        "PolicyName": "AWSLoadBalancerControllerIAMPolicy",
+        "PolicyId": "ANPA24LVTCGNV55JFAAP5",
+        "Arn": "arn:aws:iam::748107796891:policy/AWSLoadBalancerControllerIAMPolicy",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2023-01-17T20:22:23+00:00",
+        "UpdateDate": "2023-01-17T20:22:23+00:00"
+    }
+}
+```
+Create an IAM role. Take note of the returned `arn` above and use it to create a Kubernetes service account named `aws-load-balancer-controller` in the `kube-system` namespace for the AWS Load Balancer Controller and annotate the Kubernetes service account with the name of the IAM role.
+
+Important to note that if you have multiple clusters in the same region, the `--name` and `--role-name` must be unique.
+
+```
+eksctl create iamserviceaccount \
+  --cluster=sterling-mft-east \
+  --namespace=kube-system \
+  --name=aws-load-balancer-controller-mft \
+  --role-name AmazonEKSLoadBalancerControllerRoleMft \
+  --attach-policy-arn=arn:aws:iam::748107796891:policy/AWSLoadBalancerControllerIAMPolicy \
+  --approve
+```
+
+Install the EKS helm repo
+```
+helm repo add eks https://aws.github.io/eks-charts
+helm repo update
+```
+
+Install the AWS Load Balancer Controller.
+```
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=sterling-mft-east \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller-mft 
+
+```
+
+```
+kubectl get deployment -n kube-system aws-load-balancer-controller
+```
+
+Pull down the NGINX controller deployment
+```
+curl -o nginx-deploy.yaml https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/aws/deploy.yaml
+```
+
+Modify the deployment file and add the following annotations under the Service `ingress-nginx-controller`
+```
+service.beta.kubernetes.io/aws-load-balancer-type: "external"
+service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+```
+
+Apply the deployment
+```
+kubectl apply -f nginx-deploy.yaml
+```
+
+
+
 ---
 #### **Trial sign-up for Sterling MFT**
 - Using your IBM ID, submit for SFG trial request using: https://www.ibm.com/account/reg/us-en/signup?formid=urx-51433
