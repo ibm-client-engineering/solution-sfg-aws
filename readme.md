@@ -73,7 +73,7 @@ eksctl version
 ```
 Run the `eksctl` command below to create your first cluster and perform the following:
 
--   Create a 6-node Kubernetes cluster named `mft-sterling-east` with one node type as `m5.xlarge` and region as `us-east-1`.
+-   Create a 3-node Kubernetes cluster named `mft-sterling-east` with one node type as `m5.xlarge` and region as `us-east-1`.
 -   Define a node group named `standard-workers`.
 -   Select a machine type for the `standard-workers` node group.
 -   Specify our three AZs as `us-east-1a, us-east-1b, us-east-1c`
@@ -85,9 +85,9 @@ eksctl create cluster \
 --zones us-east-1a,us-east-1b,us-east-1c \
 --nodegroup-name standard-workers \
 --node-type m5.xlarge \
---nodes 6 \
+--nodes 3 \
 --nodes-min 1 \
---nodes-max 6 \
+--nodes-max 4 \
 --managed
 ```
 
@@ -95,14 +95,173 @@ Associate an IAM oidc provider with the cluster
 ```
 eksctl utils associate-iam-oidc-provider \
 --region=us-east-1 \
---cluster=mft-sterling-east \
+--cluster=sterling-mft-east \
 --approve
 ```
 Once the cluster is up, add it to your kube config
 ```
-aws eks update-kubeconfig --name mq-cluster-east --region us-east-1
-Added new context arn:aws:eks:us-east-1:748107796891:cluster/mq-cluster to /Users/kramerro/.kube/config
+aws eks update-kubeconfig --name sterling-mft-east --region us-east-1
 ```
+
+Create a namespace and set the context
+```
+kubectl create namespace sterling
+
+kubectl config set-context --current --namespace=sterling
+```
+
+Add the appropriate security policies
+
+The following sample file illustrates RBAC for the default service account with the target namespace as `sterling`
+
+Create a file called `sterling-rbac.yaml`
+
+```
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-b2bi-role-sterling
+  namespace: sterling
+rules:
+  - apiGroups: ['route.openshift.io']
+    resources: ['routes','routes/custom-host']
+    verbs: ['get', 'watch', 'list', 'patch', 'update']
+  - apiGroups: ['','batch']
+    resources: ['secrets','configmaps','persistentvolumeclaims','pods','services','cronjobs','jobs']
+    verbs: ['create', 'get', 'list', 'delete', 'patch', 'update']
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-b2bi-rolebinding-sterling
+  namespace: sterling
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: sterling
+roleRef:
+  kind: Role
+  name: ibm-b2bi-role-sterling
+  apiGroup: rbac.authorization.k8s.io
+```
+
+Apply it to the cluster
+```
+kubectl apply -f sterling-rbac.yaml
+```
+#### Security Policies
+
+With Kubernetes v1.25, Pod Security Policy (PSP) API has been removed and replaced with Pod Security Admission (PSA) contoller. Kubernetes PSA conroller enforces predefined Pod Security levels at the namespace level. The Kubernetes Pod Security Standards defines three different levels: privileged, baseline, and restricted. Refer to Kubernetes [`Pod Security Standards`] ([https://kubernetes.io/docs/concepts/security/pod-security-standards/](https://kubernetes.io/docs/concepts/security/pod-security-standards/)) documentation for more details. This chart is compatible with the restricted security level.
+
+The version of kubernetes in EKS in our instance is 1.23. So the following policies would be applied. Below is an optional custom PSP definition based on the IBM restricted PSP.
+
+Predefined PodSecurityPolicy name: [`ibm-restricted-psp`](https://ibm.biz/cpkspec-psp)
+
+From the user interface or command line, you can copy and paste the following snippets to create and enable the below custom PodSecurityPolicy based on IBM restricted PSP.
+
+`custom-podsecpolicy.yaml`
+```
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: "ibm-b2bi-psp"
+  labels:
+    app: "ibm-b2bi-psp"
+  
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  hostPID: false
+  hostIPC: false
+  hostNetwork: false
+  allowedCapabilities:
+  requiredDropCapabilities:
+  - MKNOD
+  - AUDIT_WRITE
+  - KILL
+  - NET_BIND_SERVICE
+  - NET_RAW
+  - FOWNER
+  - FSETID
+  - SYS_CHROOT
+  - SETFCAP
+  - SETPCAP
+  - CHOWN
+  - SETGID
+  - SETUID
+  - DAC_OVERRIDE
+  allowedHostPaths:
+  runAsUser:
+    rule: MustRunAsNonRoot
+  runAsGroup:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 4294967294
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 4294967294
+  fsGroup:
+    rule: MustRunAs  
+    ranges:
+    - min: 1
+      max: 4294967294
+  volumes:
+  - configMap
+  - emptyDir
+  - projected
+  - secret
+  - downwardAPI
+  - persistentVolumeClaim
+  - nfs
+  forbiddenSysctls:
+  - '*' 
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "ibm-b2bi-psp"
+  labels:
+    app: "ibm-b2bi-psp"
+rules:
+- apiGroups:
+  - policy
+  resourceNames:
+  - "ibm-b2bi-psp"
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "ibm-b2bi-psp"
+  labels:
+    app: "ibm-b2bi-psp"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: "ibm-b2bi-psp"
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:serviceaccounts
+  namespace: sterling
+```
+
+Apply it to the cluster
+```
+kubectl apply -f custom-podsecpolicy.yaml
+```
+
+
+
 ---
 
 #### **RDS/DB Schema**
@@ -242,10 +401,10 @@ login_passwd=$(aws ecr get-login-password --region us-east-1)
 ```
 Now we need to create a secret in the cluster to map the token. We need the `repositoryUri` from above for `--docker-server`
 ```
-kubectl create secret docker-registry sterling-secret \
---docker-server=https://748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo \
---docker-username=AWS \ 
---docker-password="$login_passwd"
+kubectl create secret docker-registry sterling-secret --docker-server="https://748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo" \
+--docker-username=AWS \
+--docker-password=$login_passwd \
+--docker-email="kramerro@us.ibm.com"
 ```
 ---
 #### **Trial sign-up for Sterling MFT**
