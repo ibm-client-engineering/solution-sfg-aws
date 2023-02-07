@@ -401,7 +401,8 @@ login_passwd=$(aws ecr get-login-password --region us-east-1)
 ```
 Now we need to create a secret in the cluster to map the token. We need the `repositoryUri` from above for `--docker-server`
 ```
-kubectl create secret docker-registry sterling-secret --docker-server="https://748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo" \
+kubectl create secret docker-registry sterling-secret \
+--docker-server="https://748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo" \
 --docker-username=AWS \
 --docker-password=$login_passwd \
 --docker-email="kramerro@us.ibm.com"
