@@ -73,7 +73,7 @@ eksctl version
 ```
 Run the `eksctl` command below to create your first cluster and perform the following:
 
--   Create a 6-node Kubernetes cluster named `mft-sterling-east` with one node type as `m5.xlarge` and region as `us-east-1`.
+-   Create a 3-node Kubernetes cluster named `mft-sterling-east` with one node type as `m5.xlarge` and region as `us-east-1`.
 -   Define a node group named `standard-workers`.
 -   Select a machine type for the `standard-workers` node group.
 -   Specify our three AZs as `us-east-1a, us-east-1b, us-east-1c`
@@ -85,9 +85,9 @@ eksctl create cluster \
 --zones us-east-1a,us-east-1b,us-east-1c \
 --nodegroup-name standard-workers \
 --node-type m5.xlarge \
---nodes 6 \
+--nodes 3 \
 --nodes-min 1 \
---nodes-max 6 \
+--nodes-max 4 \
 --managed
 ```
 
@@ -95,14 +95,401 @@ Associate an IAM oidc provider with the cluster
 ```
 eksctl utils associate-iam-oidc-provider \
 --region=us-east-1 \
---cluster=mft-sterling-east \
+--cluster=sterling-mft-east \
 --approve
 ```
 Once the cluster is up, add it to your kube config
 ```
-aws eks update-kubeconfig --name mq-cluster-east --region us-east-1
-Added new context arn:aws:eks:us-east-1:748107796891:cluster/mq-cluster to /Users/kramerro/.kube/config
+aws eks update-kubeconfig --name sterling-mft-east --region us-east-1
 ```
+Create a namespace and set the context
+```
+kubectl create namespace sterling
+
+kubectl config set-context --current --namespace=sterling
+```
+
+#### **Enable EFS on the cluster**
+
+By default when we create a cluster with eksctl it defines and installs `gp2` storage class which is backed by Amazon's EBS (elastic block storage). Being block storage, it's not super happy supporting RWX in our cluster. We need to install an EFS storage class.
+
+#### **Create an IAM policy and role**
+
+Create an IAM policy and assign it to an IAM role. The policy will allow the Amazon EFS driver to interact with your file system.
+
+#### **To deploy the Amazon EFS CSI driver to an Amazon EKS cluster**
+
+Create an IAM policy that allows the CSI driver's service account to make calls to AWS APIs on your behalf. This will also allow it to create access points on the fly.
+
+Download the IAM policy document from GitHub. You can also view the [policy document](https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/docs/iam-policy-example.json)
+        
+```
+curl -o iam-policy-efs.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/master/docs/iam-policy-example.json
+```
+    
+Create the policy. You can change `AmazonEKS_EFS_CSI_Driver_Policy` to a different name, but if you do, make sure to change it in later steps too.
+```
+aws iam create-policy \
+--policy-name AmazonEKS_EFS_CSI_Driver_Policy \
+--policy-document file://iam-policy-efs.json
+
+{
+    "Policy": {
+        "PolicyName": "AmazonEKS_EFS_CSI_Driver_Policy",
+        "PolicyId": "ANPA24LVTCGN7YGDYRWJT",
+        "Arn": "arn:aws:iam::748107796891:policy/AmazonEKS_EFS_CSI_Driver_Policy",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2023-01-24T17:24:00+00:00",
+        "UpdateDate": "2023-01-24T17:24:00+00:00"
+    }
+}
+```
+        
+Create an IAM role and attach the IAM policy to it. Annotate the Kubernetes service account with the IAM role ARN and the IAM role with the Kubernetes service account name. You can create the role using `eksctl` or the AWS CLI. We're gonna use `eksctl`, Also our `Arn` is returned in the output above, so we'll use it here.
+
+```
+eksctl create iamserviceaccount \
+    --cluster sterling-mft-east \
+    --namespace kube-system \
+    --name efs-csi-controller-sa \
+    --attach-policy-arn arn:aws:iam::748107796891:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+    --approve \
+    --region us-east-1
+```
+
+Once created, check the iam service account is created running the following command.
+
+```bash
+eksctl get iamserviceaccount --cluster sterling-mft-east
+NAMESPACE   NAME                    ROLE ARN
+kube-system     efs-csi-controller-sa   arn:aws:iam::748107796891:role/eksctl-sterling-mft-east-addon-iamserviceacc-Role1-94PR0YDP0RF9
+```
+
+Now we just need our add-on registry address. This can be found here: https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html
+
+Let's install the driver add-on to our clusters. We're going to use `helm` for this.
+```
+helm repo add aws-efs-csi-driver https://kubernetes-sigs.github.io/aws-efs-csi-driver/
+
+helm repo update
+
+```
+    
+Install a release of the driver using the Helm chart. Replace the repository address with the cluster's [container image address](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html).
+
+```
+helm upgrade -i aws-efs-csi-driver aws-efs-csi-driver/aws-efs-csi-driver \
+    --namespace kube-system \
+    --set image.repository=602401143452.dkr.ecr.us-east-1.amazonaws.com/eks/aws-efs-csi-driver \
+    --set controller.serviceAccount.create=false \
+    --set controller.serviceAccount.name=efs-csi-controller-sa
+
+```
+Now we need to create the filesystem in EFS so we can use it
+
+```
+export clustername=sterling-mft-east
+export region=us-east-1
+```
+
+```
+vpc_id=$(aws eks describe-cluster \
+    --name $clustername \
+    --query "cluster.resourcesVpcConfig.vpcId" \
+    --region $region \
+    --output text)
+```
+
+Retrieve the CIDR range for your cluster's VPC and store it in a variable for use in a later step.
+
+```
+cidr_range=$(aws ec2 describe-vpcs \
+    --vpc-ids $vpc_id \
+    --query "Vpcs[].CidrBlock" \
+    --output text \
+    --region $region)
+```
+
+Create a security group with an inbound rule that allows inbound NFS traffic for your Amazon EFS mount points.
+
+```
+security_group_id=$(aws ec2 create-security-group \
+    --group-name EFS4SecurityGroup \
+    --description "EFS security group latest" \
+    --vpc-id $vpc_id \
+    --region $region \
+    --output text)
+```
+
+Create an inbound rule that allows inbound NFS traffic from the CIDR for your cluster's VPC.
+
+```
+aws ec2 authorize-security-group-ingress \
+    --group-id $security_group_id \
+    --protocol tcp \
+    --port 2049 \
+    --region $region \
+    --cidr $cidr_range
+```
+
+Create a file system.
+```
+file_system_id=$(aws efs create-file-system \
+    --region $region \
+    --encrypted \
+    --performance-mode generalPurpose \
+    --query 'FileSystemId' \
+    --output text)
+```
+Create mount targets.
+
+Determine the IDs of the subnets in your VPC and which Availability Zone the subnet is in.
+```
+aws ec2 describe-subnets \
+    --filters "Name=vpc-id,Values=$vpc_id" \
+    --query 'Subnets[*].{SubnetId: SubnetId,AvailabilityZone: AvailabilityZone,CidrBlock: CidrBlock}' \
+    --region $region \
+    --output table
+```
+Should output the following
+```
+----------------------------------------------------------------------
+|                           DescribeSubnets                          |
++------------------+--------------------+----------------------------+
+| AvailabilityZone |     CidrBlock      |         SubnetId           |
++------------------+--------------------+----------------------------+
+|  us-east-1a      |  192.168.0.0/19    |  subnet-08ddff738c8fac2db  |
+|  us-east-1b      |  192.168.32.0/19   |  subnet-0e11acfc0a427d52d  |
+|  us-east-1b      |  192.168.128.0/19  |  subnet-0dd9067f0f828e49c  |
+|  us-east-1c      |  192.168.160.0/19  |  subnet-0da98130d8b80f210  |
+|  us-east-1a      |  192.168.96.0/19   |  subnet-02b159221adb9b790  |
+|  us-east-1c      |  192.168.64.0/19   |  subnet-01987475cac20b583  |
++------------------+--------------------+----------------------------+
+```
+Add mount targets for the subnets that your nodes are in. Basically, for each SubnetId above, run the following command:
+
+```
+aws efs create-mount-target \
+    --file-system-id $file_system_id \
+    --region $region \
+    --subnet-id <SUBNETID> \
+    --security-groups $security_group_id
+```
+Create a storage class for dynamic provisioning
+
+Let's get our filesystem ID if we don't already have it above.
+```
+aws efs describe-file-systems \
+--query "FileSystems[*].FileSystemId" \
+--region $region \
+--output text
+
+fs-071439ffb7e10b67b
+```
+
+Update it with the storage class id
+```
+sed -i 's/fileSystemId:.*/fileSystemId: fs-071439ffb7e10b67b/' EFSStorageClass.yaml
+```
+
+Download a `StorageClass` manifest for Amazon EFS.
+```
+curl -o EFSStorageClass.yaml https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/master/examples/kubernetes/dynamic_provisioning/specs/storageclass.yaml
+```
+Also make sure your storageclass looks like this:
+```
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+mountOptions:
+  - tls
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-071439ffb7e10b67b
+  directoryPerms: "775"
+  gidRangeStart: "1000" # optional
+  gidRangeEnd: "3000" # optional
+  basePath: "/efs/dynamic_provisioning" # optional
+  uid: "2001" # This tells the provisioner to make the owner this uid
+  gid: "65534" # This tells the provisioner to make the group owner this gid
+```
+
+Deploy the storage class.
+
+```
+kubectl apply -f EFSStorageClass.yaml
+```
+
+Finally, verify it's there
+```
+kubectl get sc
+NAME            PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+efs-sc          efs.csi.aws.com         Delete          Immediate              false                  7s
+gp2 (default)   kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   false                  13d
+```
+
+#### **Add the appropriate security policies**
+
+The following sample file illustrates RBAC for the default service account with the target namespace as `sterling`
+
+Create a file called `sterling-rbac.yaml`
+
+```
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-b2bi-role-sterling
+  namespace: sterling
+rules:
+  - apiGroups: ['route.openshift.io']
+    resources: ['routes','routes/custom-host']
+    verbs: ['get', 'watch', 'list', 'patch', 'update']
+  - apiGroups: ['','batch']
+    resources: ['secrets','configmaps','persistentvolumeclaims','pods','services','cronjobs','jobs']
+    verbs: ['create', 'get', 'list', 'delete', 'patch', 'update']
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ibm-b2bi-rolebinding-sterling
+  namespace: sterling
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: sterling
+roleRef:
+  kind: Role
+  name: ibm-b2bi-role-sterling
+  apiGroup: rbac.authorization.k8s.io
+```
+
+Apply it to the cluster
+```
+kubectl apply -f sterling-rbac.yaml
+```
+#### Security Policies
+
+With Kubernetes v1.25, Pod Security Policy (PSP) API has been removed and replaced with Pod Security Admission (PSA) contoller. Kubernetes PSA conroller enforces predefined Pod Security levels at the namespace level. The Kubernetes Pod Security Standards defines three different levels: privileged, baseline, and restricted. Refer to Kubernetes [`Pod Security Standards`] ([https://kubernetes.io/docs/concepts/security/pod-security-standards/](https://kubernetes.io/docs/concepts/security/pod-security-standards/)) documentation for more details. This chart is compatible with the restricted security level.
+
+The version of kubernetes in EKS in our instance is 1.23. So the following policies would be applied. Below is an optional custom PSP definition based on the IBM restricted PSP.
+
+Predefined PodSecurityPolicy name: [`ibm-restricted-psp`](https://ibm.biz/cpkspec-psp)
+
+From the user interface or command line, you can copy and paste the following snippets to create and enable the below custom PodSecurityPolicy based on IBM restricted PSP.
+
+`custom-podsecpolicy.yaml`
+```
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: "ibm-b2bi-psp"
+  labels:
+    app: "ibm-b2bi-psp"
+  
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  hostPID: false
+  hostIPC: false
+  hostNetwork: false
+  allowedCapabilities:
+  requiredDropCapabilities:
+  - MKNOD
+  - AUDIT_WRITE
+  - KILL
+  - NET_BIND_SERVICE
+  - NET_RAW
+  - FOWNER
+  - FSETID
+  - SYS_CHROOT
+  - SETFCAP
+  - SETPCAP
+  - CHOWN
+  - SETGID
+  - SETUID
+  - DAC_OVERRIDE
+  allowedHostPaths:
+  runAsUser:
+    rule: MustRunAsNonRoot
+  runAsGroup:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 4294967294
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 4294967294
+  fsGroup:
+    rule: MustRunAs  
+    ranges:
+    - min: 1
+      max: 4294967294
+  volumes:
+  - configMap
+  - emptyDir
+  - projected
+  - secret
+  - downwardAPI
+  - persistentVolumeClaim
+  - nfs
+  forbiddenSysctls:
+  - '*' 
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "ibm-b2bi-psp"
+  labels:
+    app: "ibm-b2bi-psp"
+rules:
+- apiGroups:
+  - policy
+  resourceNames:
+  - "ibm-b2bi-psp"
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: "ibm-b2bi-psp"
+  labels:
+    app: "ibm-b2bi-psp"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: "ibm-b2bi-psp"
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: system:serviceaccounts
+  namespace: sterling
+```
+
+Apply it to the cluster
+```
+kubectl apply -f custom-podsecpolicy.yaml
+```
+---
+#### Helm Chart installation
+
+```
+helm repo add ibm-helm https://raw.githubusercontent.com/IBM/charts/master/repo/ibm-helm
+```
+
 ---
 
 #### **RDS/DB Schema**
@@ -243,9 +630,10 @@ login_passwd=$(aws ecr get-login-password --region us-east-1)
 Now we need to create a secret in the cluster to map the token. We need the `repositoryUri` from above for `--docker-server`
 ```
 kubectl create secret docker-registry sterling-secret \
---docker-server=https://748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo \
---docker-username=AWS \ 
---docker-password="$login_passwd"
+--docker-server="https://748107796891.dkr.ecr.us-east-1.amazonaws.com/sterling-mft-repo" \
+--docker-username=AWS \
+--docker-password=$login_passwd \
+--docker-email="kramerro@us.ibm.com"
 ```
 ---
 #### **Trial sign-up for Sterling MFT**
