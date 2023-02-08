@@ -12,13 +12,13 @@
       - [Generic Requirements](#generic-requirements)
         - [Trial sign-up for Sterling MFT](#trial-sign-up-for-sterling-mft)
       - [AWS Account](#aws-account)
-      - [CMDLINE Client install (MacOS)](#cmdline-client-install-macos)
+      - [AWS CLI Install](#aws-cli-install)
       - [AWS EKS Cluster](#aws-eks-cluster)
       - [Installing or updating `eksctl`](#installing-or-updating-eksctl)
-      - [**Enable EFS on the cluster**](#enable-efs-on-the-cluster)
-      - [**Create an IAM policy and role**](#create-an-iam-policy-and-role)
-      - [**To deploy the Amazon EFS CSI driver to an Amazon EKS cluster**](#to-deploy-the-amazon-efs-csi-driver-to-an-amazon-eks-cluster)
-      - [**Add the appropriate security policies**](#add-the-appropriate-security-policies)
+      - [Elastic File Service (EFS) on EKS](#elastic-file-service-efs-on-eks)
+      - [Create an IAM policy and role](#create-an-iam-policy-and-role)
+      - [Deploy Amazon EFS CSI driver to an Amazon EKS cluster](#deploy-amazon-efs-csi-driver-to-an-amazon-eks-cluster)
+      - [Add Security Policies](#add-security-policies)
       - [Security Policies](#security-policies)
       - [Helm Chart installation](#helm-chart-installation)
       - [RDS/DB Schema](#rdsdb-schema)
@@ -47,6 +47,7 @@ This is a living document that is subject to change and evolution as IBM Client 
 ### Pre-Requisites
 
 #### Generic Requirements
+
 - Amazon Web Services (AWS) account with necessary permissions
 - Access to IBM B2Bi and Sterling File Gateway Enterprise Edition installation packages
 - Basic knowledge of Helm, Kubernetes, and Amazon EKS
@@ -60,7 +61,7 @@ This is a living document that is subject to change and evolution as IBM Client 
 
 #### AWS Account
 Configuring AWS Cli
-#### CMDLINE Client install (MacOS)
+#### AWS CLI Install
 
 Download the client
 ```
@@ -150,15 +151,15 @@ kubectl create namespace sterling
 kubectl config set-context --current --namespace=sterling
 ```
 
-#### **Enable EFS on the cluster**
+#### Elastic File Service (EFS) on EKS
 
 By default when we create a cluster with eksctl it defines and installs `gp2` storage class which is backed by Amazon's EBS (elastic block storage). Being block storage, it's not super happy supporting RWX in our cluster. We need to install an EFS storage class.
 
-#### **Create an IAM policy and role**
+#### Create an IAM policy and role
 
 Create an IAM policy and assign it to an IAM role. The policy will allow the Amazon EFS driver to interact with your file system.
 
-#### **To deploy the Amazon EFS CSI driver to an Amazon EKS cluster**
+#### Deploy Amazon EFS CSI driver to an Amazon EKS cluster
 
 Create an IAM policy that allows the CSI driver's service account to make calls to AWS APIs on your behalf. This will also allow it to create access points on the fly.
 
@@ -375,7 +376,7 @@ efs-sc          efs.csi.aws.com         Delete          Immediate              f
 gp2 (default)   kubernetes.io/aws-ebs   Delete          WaitForFirstConsumer   false                  13d
 ```
 
-#### **Add the appropriate security policies**
+#### Add Security Policies
 
 The following sample file illustrates RBAC for the default service account with the target namespace as `sterling`
 
