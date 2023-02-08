@@ -1,23 +1,64 @@
 <h1>IBM Client Engineering - Solution Document</h1>
 
-<h2>Solution Name</h2>
+<h2>IBM Sterling: Cloud Ready Data Exchange</h2>
 <img align="right" src="https://user-images.githubusercontent.com/95059/166857681-99c92cdc-fa62-4141-b903-969bd6ec1a41.png" width="491" >
+
+- [Introduction and Goals](#introduction-and-goals)
+- [Solution Strategy](#solution-strategy)
+  - [Overview](#overview)
+  - [Building Block View](#building-block-view)
+  - [Deployment](#deployment)
+    - [Pre-Requisites](#pre-requisites)
+      - [Generic Requirements](#generic-requirements)
+        - [Trial sign-up for Sterling MFT](#trial-sign-up-for-sterling-mft)
+      - [AWS Account](#aws-account)
+      - [CMDLINE Client install (MacOS)](#cmdline-client-install-macos)
+      - [AWS EKS Cluster](#aws-eks-cluster)
+      - [Installing or updating `eksctl`](#installing-or-updating-eksctl)
+      - [**Enable EFS on the cluster**](#enable-efs-on-the-cluster)
+      - [**Create an IAM policy and role**](#create-an-iam-policy-and-role)
+      - [**To deploy the Amazon EFS CSI driver to an Amazon EKS cluster**](#to-deploy-the-amazon-efs-csi-driver-to-an-amazon-eks-cluster)
+      - [**Add the appropriate security policies**](#add-the-appropriate-security-policies)
+      - [Security Policies](#security-policies)
+      - [Helm Chart installation](#helm-chart-installation)
+      - [RDS/DB Schema](#rdsdb-schema)
+      - [Images and Internal Registry](#images-and-internal-registry)
+    - [Installation](#installation)
+  - [Security](#security)
+  - [Testing](#testing)
+- [Architecture Decisions](#architecture-decisions)
+    - [ADR1.0](#adr10)
 
 
 # Introduction and Goals
 
-## Background and Business Problem
+The purpose of this document is to provide a step-by-step guide for installing IBM Sterling File Gateway (and other B2Bi components) on Amazon EKS using Helm Charts. The solution aims to address the business need to host a cloud-ready data exchange platform using Sterling File Gateway and provide a scalable, secure and efficient file exchange solution.
 
+This is a living document that is subject to change and evolution as IBM Client Engineering co-creates this solution with our customer.
 
 # Solution Strategy
+:construction:
 
 ## Overview
-
+:construction:
 ## Building Block View
-
+:construction:
 ## Deployment
 ### Pre-Requisites
-#### **AWS Account:**
+
+#### Generic Requirements
+- Amazon Web Services (AWS) account with necessary permissions
+- Access to IBM B2Bi and Sterling File Gateway Enterprise Edition installation packages
+- Basic knowledge of Helm, Kubernetes, and Amazon EKS
+- Amazon EKS cluster up and running
+- Helm CLI installed on the local machine
+##### Trial sign-up for Sterling MFT
+
+- Using your IBM ID, submit for SFG trial request using: <https://www.ibm.com/account/reg/us-en/signup?formid=urx-51433>
+- Use the access token for IBM Entitled Registry from Step 1 to pull and stage images (in internal image repository, if necessary).
+
+
+#### AWS Account
 Configuring AWS Cli
 #### CMDLINE Client install (MacOS)
 
@@ -39,11 +80,11 @@ aws configure
 Answer all the questions with the info you got. If you already have a profile configured, you can add a named profile to your credentials
 
 ---
-#### **EKS Cluster**
+#### AWS EKS Cluster
 
 The tool to use for managing EKS is called `eksctl`.
 
-### Installing or updating `eksctl` 
+#### Installing or updating `eksctl`
 MacOS: Install `eksctl` via Homebrew
 
 If you don't have homebrew installed, run these commands in a terminal window:
@@ -52,12 +93,12 @@ If you don't have homebrew installed, run these commands in a terminal window:
 
 brew upgrade eksctl && { brew link --overwrite eksctl; } || { brew tap weaveworks/tap; brew install weaveworks/tap/eksctl; }
 ```
-Verify the install with 
+Verify the install with
 
 ```
 eksctl version
 ```
-**To install or update eksctl on Linux**
+- eksctl on Linux
 
 Download and extract the latest release of eksctl with the following command.
 ```
@@ -122,11 +163,11 @@ Create an IAM policy and assign it to an IAM role. The policy will allow the Ama
 Create an IAM policy that allows the CSI driver's service account to make calls to AWS APIs on your behalf. This will also allow it to create access points on the fly.
 
 Download the IAM policy document from GitHub. You can also view the [policy document](https://github.com/kubernetes-sigs/aws-efs-csi-driver/blob/master/docs/iam-policy-example.json)
-        
+
 ```
 curl -o iam-policy-efs.json https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/master/docs/iam-policy-example.json
 ```
-    
+
 Create the policy. You can change `AmazonEKS_EFS_CSI_Driver_Policy` to a different name, but if you do, make sure to change it in later steps too.
 ```
 aws iam create-policy \
@@ -148,7 +189,7 @@ aws iam create-policy \
     }
 }
 ```
-        
+
 Create an IAM role and attach the IAM policy to it. Annotate the Kubernetes service account with the IAM role ARN and the IAM role with the Kubernetes service account name. You can create the role using `eksctl` or the AWS CLI. We're gonna use `eksctl`, Also our `Arn` is returned in the output above, so we'll use it here.
 
 ```
@@ -178,7 +219,7 @@ helm repo add aws-efs-csi-driver https://kubernetes-sigs.github.io/aws-efs-csi-d
 helm repo update
 
 ```
-    
+
 Install a release of the driver using the Helm chart. Replace the repository address with the cluster's [container image address](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html).
 
 ```
@@ -392,7 +433,7 @@ metadata:
   name: "ibm-b2bi-psp"
   labels:
     app: "ibm-b2bi-psp"
-  
+
 spec:
   privileged: false
   allowPrivilegeEscalation: false
@@ -431,7 +472,7 @@ spec:
     - min: 1
       max: 4294967294
   fsGroup:
-    rule: MustRunAs  
+    rule: MustRunAs
     ranges:
     - min: 1
       max: 4294967294
@@ -444,7 +485,7 @@ spec:
   - persistentVolumeClaim
   - nfs
   forbiddenSysctls:
-  - '*' 
+  - '*'
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -490,9 +531,13 @@ kubectl apply -f custom-podsecpolicy.yaml
 helm repo add ibm-helm https://raw.githubusercontent.com/IBM/charts/master/repo/ibm-helm
 ```
 
+> # Info
+>Charts: <https://github.com/IBM/charts/blob/master/repo/ibm-helm/ibm-sfg-prod.md>
+ <https://github.com/IBM/charts/blob/master/repo/ibm-helm/ibm-sfg-prod-2.1.1.tgz>
+
 ---
 
-#### **RDS/DB Schema**
+#### RDS/DB Schema
 
 Create a security group. We're going to get our vpc for our sterling cluster first and use that here since we don't have any default vpc.
 
@@ -593,7 +638,7 @@ aws rds create-db-instance \
 
 
 ---
-#### **Registry - images**
+#### Images and Internal Registry
 We are going to set up an Amazon Elastic Container Registry. For this we will first create a repository
 
 ```
@@ -636,17 +681,14 @@ kubectl create secret docker-registry sterling-secret \
 --docker-email="kramerro@us.ibm.com"
 ```
 ---
-#### **Trial sign-up for Sterling MFT**
-- Using your IBM ID, submit for SFG trial request using: https://www.ibm.com/account/reg/us-en/signup?formid=urx-51433
-- Use the access token for IBM Entitled Registry from Step 1 to pull and stage images (in their internal image repository, if necessary).
-- Charts: https://github.com/IBM/charts/blob/master/repo/ibm-helm/ibm-sfg-prod.md
- https://github.com/IBM/charts/blob/master/repo/ibm-helm/ibm-sfg-prod-2.1.1.tgz
+
+### Installation
+:construction:
+
 ## Security
-
-## Cost
-
-## Risks and Technical Debts
-
+:construction:
 ## Testing
-
+:construction:
 # Architecture Decisions
+### ADR1.0
+- Images will be staged to an internal Image registry.
