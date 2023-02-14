@@ -15,6 +15,7 @@
       - [AWS CLI Install](#aws-cli-install)
       - [AWS EKS Cluster](#aws-eks-cluster)
       - [Installing or updating `eksctl`](#installing-or-updating-eksctl)
+      - [Granting Additional Access](#granting-additional-access)
       - [Elastic File Service (EFS) on EKS](#elastic-file-service-efs-on-eks)
       - [Create an IAM policy and role](#create-an-iam-policy-and-role)
       - [Deploy Amazon EFS CSI driver to an Amazon EKS cluster](#deploy-amazon-efs-csi-driver-to-an-amazon-eks-cluster)
@@ -23,6 +24,7 @@
       - [Helm Chart installation](#helm-chart-installation)
       - [RDS/DB Schema](#rdsdb-schema)
       - [Images and Internal Registry](#images-and-internal-registry)
+      - [**Install NGINX Ingress**](#install-nginx-ingress)
     - [Installation](#installation)
   - [Security](#security)
   - [Testing](#testing)
@@ -144,6 +146,9 @@ Once the cluster is up, add it to your kube config
 ```
 aws eks update-kubeconfig --name sterling-mft-east --region us-east-1
 ```
+
+#### Granting Additional Access
+
 If there are other users who need access to this cluster, you can grant them full access with the following commands:
 
 Retrieve a list of user names and arns:
@@ -187,7 +192,7 @@ View the mappings in the cluster ConfigMap.
 ```
 eksctl get iamidentitymapping --cluster sterling-mft-east --region=us-east-1
 ```
-Do this for every user or role you want to grant access to. 
+Do this for every user or role you want to grant access to.
 
 Ref https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
 
@@ -736,9 +741,9 @@ Download an IAM policy for the AWS Load Balancer Controller that allows it to ma
 
 ```
 curl -o iam_loadbalancer_policy.json https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/v2.4.4/docs/install/iam_policy.json
-```  
-    
-Create an IAM policy using the policy downloaded in the previous step.    
+```
+
+Create an IAM policy using the policy downloaded in the previous step.
 ```
 aws iam create-policy \
     --policy-name AWSLoadBalancerControllerIAMPolicy \
@@ -785,7 +790,7 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
   -n kube-system \
   --set clusterName=sterling-mft-east \
   --set serviceAccount.create=false \
-  --set serviceAccount.name=aws-load-balancer-controller-mft 
+  --set serviceAccount.name=aws-load-balancer-controller-mft
 
 ```
 
