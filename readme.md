@@ -389,9 +389,6 @@ metadata:
   name: ibm-b2bi-role-sterling
   namespace: sterling
 rules:
-  - apiGroups: ['route.openshift.io']
-    resources: ['routes','routes/custom-host']
-    verbs: ['get', 'watch', 'list', 'patch', 'update']
   - apiGroups: ['','batch']
     resources: ['secrets','configmaps','persistentvolumeclaims','pods','services','cronjobs','jobs']
     verbs: ['create', 'get', 'list', 'delete', 'patch', 'update']
