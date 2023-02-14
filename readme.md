@@ -576,11 +576,137 @@ kubectl apply -f custom-podsecpolicy.yaml
 
 ```
 helm repo add ibm-helm https://raw.githubusercontent.com/IBM/charts/master/repo/ibm-helm
+
+helm repo add mq-helm-eks https://ibm-client-engineering.github.io/mq-helm-eks/
 ```
+
 
 > # Info
 >Charts: <https://github.com/IBM/charts/blob/master/repo/ibm-helm/ibm-sfg-prod.md>
  <https://github.com/IBM/charts/blob/master/repo/ibm-helm/ibm-sfg-prod-2.1.1.tgz>
+
+---
+
+### Configure IBM MQ on the cluster
+
+Create a new namespace for MQ
+```
+kubectl create namespace mqsterling
+```
+
+Set our context to it
+
+```
+kubectl config set-context --current --namespace=mqsterling
+```
+
+Create a values file called `sterling_values.yaml`
+```
+# © Copyright IBM Corporation 2021, 2022
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+license: accept
+log:
+  debug: false
+
+image:
+  # repository is the container repository to use
+  # repository: <URL FOR AIRGAPPED REPO>/icr.io/ibm-messaging/mq
+  # This should point to either the IBM repo by default or it can be changed to point elsewhere.
+  repository: icr.io/ibm-messaging/mq
+  # tag is the tag to use for the container repository
+  tag: latest
+  # pullSecret is the secret to use when pulling the image from a private registry
+  # pullSecret: ics-cots-pullsecret
+  pullSecret:
+  # pullPolicy is either IfNotPresent or Always (https://kubernetes.io/docs/concepts/containers/images/)
+  pullPolicy: IfNotPresent
+
+queueManager:
+  name: b2bi
+  nativeha:
+    enable: false
+  multiinstance:
+    enable: true
+
+metrics:
+  enabled: true
+
+persistence:
+  dataPVC:
+    enable: true
+    name: "data"
+    size: 2Gi
+    storageClassName: "efs-sc"
+  logPVC:
+    enable: true
+    name: "log"
+    size: 2Gi
+    storageClassName: "efs-sc"
+  qmPVC:
+    enable: true
+    name: "qm"
+    size: 2Gi
+    storageClassName: "efs-sc"
+
+security:
+  context:
+    fsGroup: 65534
+#    fsGroup: 0
+    supplementalGroups: [65534,2001]
+  initVolumeAsRoot: false
+  runAsUser: 2001
+  runAsGroup: 2001
+
+metadata:
+  annotations:
+    productName: "IBM MQ Advanced for Developers"
+    productID: "2f886a3eefbe4ccb89b2adb97c78b9cb"
+    productChargedContainers: ""
+    productMetric: "FREE"
+route:
+  nodePort:
+    webconsole: true
+    mqtraffic: true
+  loadBalancer:
+    webconsole: false
+    mqtraffic: true
+  ingress:
+    webconsole:
+      enable: true
+      hostname:
+      path: /ibmmq
+      tls:
+        enable: false
+    mqtraffic:
+      enable: false
+      hostname:
+      path:
+      tls:
+        enable: false
+```
+Install IBM MQ with the following command
+
+```
+helm install sterlingmq mq-helm-eks/ibm-mq -f sterling_values.yaml \
+--set "queueManager.envVariables[0].name=MQ_ADMIN_PASSWORD" \
+--set "queueManager.envVariables[0].value=mqpasswd" \
+--set "queueManager.envVariables[1].name=MQ_APP_PASSWORD" \
+--set "queueManager.envVariables[1].value=mqpasswd"
+```
+
+The command above will create a loadbalancer with port 1414 as the access port for the queue manager and will create an ingress for the web console provided you've installed NGINX ingress capability into the cluster.
 
 ---
 
