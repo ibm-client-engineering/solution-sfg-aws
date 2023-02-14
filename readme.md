@@ -1,7 +1,7 @@
 <h1>IBM Client Engineering - Solution Document</h1>
 
 <h2>IBM Sterling: Cloud Ready Data Exchange</h2>
-<img align="right" src="https://user-images.githubusercontent.com/95059/166857681-99c92cdc-fa62-4141-b903-969bd6ec1a41.png" width="491" >
+<a href="https://www.ibm.com/client-engineering"><img align="right" src="https://user-images.githubusercontent.com/95059/166857681-99c92cdc-fa62-4141-b903-969bd6ec1a41.png" width="491" ></a>
 
 - [Introduction and Goals](#introduction-and-goals)
 - [Solution Strategy](#solution-strategy)
