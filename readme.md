@@ -144,6 +144,55 @@ Once the cluster is up, add it to your kube config
 ```
 aws eks update-kubeconfig --name sterling-mft-east --region us-east-1
 ```
+If there are other users who need access to this cluster, you can grant them full access with the following commands:
+
+Retrieve a list of user names and arns:
+
+```
+aws iam list-users --query 'Users[].[UserName, Arn]'
+
+[
+     [
+        "user1",
+        "arn:aws:iam::111111111111:user/user1"
+    ],
+    [
+        "user2",
+        "arn:aws:iam::111111111111:user/user2"
+    ],
+]
+```
+
+Add privileges with the Arn we've retrieved above. Bear in mind that this adds `system:master` access to the specified cluster
+
+```
+eksctl create iamidentitymapping \
+--cluster sterling-mft-east \
+--region=us-east-1 \
+--arn arn:aws:iam::111111111111:user/user1 \
+--group system:masters \
+--no-duplicate-arns
+```
+This can also be applied to any AWS role
+
+```
+eksctl create iamidentitymapping \
+--cluster sterling-mft-east \
+--region=us-east-1 \
+--arn arn:aws:iam::111111111111:role/Role1 \
+--group system:masters \
+--no-duplicate-arns
+```
+View the mappings in the cluster ConfigMap.
+```
+eksctl get iamidentitymapping --cluster sterling-mft-east --region=us-east-1
+```
+Do this for every user or role you want to grant access to. 
+
+Ref https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html
+
+---
+
 Create a namespace and set the context
 ```
 kubectl create namespace sterling
