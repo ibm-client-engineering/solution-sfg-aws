@@ -22,7 +22,9 @@
       - [Security Policies](#security-policies)
       - [Helm Chart installation](#helm-chart-installation)
       - [RDS/DB Schema](#rdsdb-schema)
+      - [**Configure Oracle RDS Instance**](#configure-oracle-rds-instance)
       - [Images and Internal Registry](#images-and-internal-registry)
+      - [**Install NGINX Ingress**](#install-nginx-ingress)
     - [Installation](#installation)
   - [Security](#security)
   - [Testing](#testing)
@@ -639,6 +641,90 @@ aws rds create-db-instance \
 
 
 ---
+
+#### **Configure Oracle RDS Instance**
+Now that we have an Oracle RDS instance, we are going to configure the database in preparation for Sterling B2Bi installation.
+
+There are recommended and mandatory settings in terms of Oracle init parameter configurations. When using an AWS Oracle RDS instance, all of the folliowing mandatory settings are already set by default.
+
+Reference: [Mandatory Oracle init parameters](https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=checklist-mandatory-oracle-init-parameters)
+
+However, among the following recommended settings, only *open_cursor* setting is not met and could not be updated given permission limitations (ALTER SYSTEM is not allowed), since AWS Oracle RDS is a fully managed instance. But, this is not a required setting.
+
+Reference: [Recommended Oracle init parameters](https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=checklist-recommended-oracle-init-parameters)
+
+Next, you will need to be able to connect and execute SQL commands against your Oracle RDS instance.
+
+1. Create a bastion host with your key pair
+   1. In the same VPC as your Oracle RDS instance (specially if it is private)
+   2. In a subnet with an Internet gateway
+   3. With a security group defined for SSH access
+   4. And another security group with access to the Oracle RDS instance
+2. Connect to the bastion host using SSH and your key pair
+3. Install SQL client such as [SQL*Plus to connect to your Oracle database instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ConnectToOracleInstance.SQLPlus.html)
+
+Connect to your Oracle RDS instance:
+
+```
+sqlplus 'user_name@password(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=dns_name)(PORT=port))(CONNECT_DATA=(SID=database_name)))'
+```
+
+Using the AWS console, you can lookup host or dns name (Endpoint) and port under the *Connectivity and security* tab and the DB name under the *Configuration* tab - for example (using *ORCL*, the default Oracle RDS instance DB name):
+
+```
+sqlplus "oracleuser/oraclepass@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=sterling-mft-db.some-dns.us-east-1.rds.amazonaws.com)(PORT=1521))(CONNECT_DATA=(SID=ORCL)))"
+```
+
+Run the following SQL script that will do the following:
+
+1. Create a tablespace for user tables and indexes
+2. Set newly created tablespace as default
+3. Create a new user for Sterling
+4. Grant permissions to the Sterling user
+
+```
+/*
+Create tablespace
+*/
+CREATE TABLESPACE SI_USERS DATAFILE SIZE 1G AUTOEXTEND ON MAXSIZE 100G;
+
+/*
+Set new tablespace as default
+*/
+EXEC rdsadmin.rdsadmin_util.alter_default_tablespace(tablespace_name => 'SI_USERS');
+
+/*
+Create new user for Sterling
+*/
+CREATE USER SI_USER IDENTIFIED BY SI_USER_pass;
+
+/*
+Grant necessary permissions to newly created Sterling user
+*/
+GRANT "CONNECT" TO SI_USER;
+ALTER USER SI_USER DEFAULT ROLE "CONNECT";
+GRANT CREATE SEQUENCE TO SI_USER;
+GRANT CREATE TABLE TO SI_USER;
+GRANT CREATE TRIGGER TO SI_USER;
+GRANT SELECT ON CTXSYS.CTX_USER_INDEXES TO SI_USER;
+GRANT SELECT ON SYS.DBA_DATA_FILES TO SI_USER;
+GRANT SELECT ON SYS.DBA_FREE_SPACE TO SI_USER;
+GRANT SELECT ON SYS.DBA_USERS TO SI_USER;
+GRANT SELECT ON SYS.V_$PARAMETER TO SI_USER;
+GRANT SELECT ANY DICTIONARY TO SI_USER;
+GRANT ALTER SESSION TO SI_USER;
+GRANT CREATE SESSION TO SI_USER;
+GRANT CREATE VIEW TO SI_USER;
+```
+
+You can save the above SQL statements in a SQL file named *config-oracle-db.sql* on your bastion host, and then execute the following in a sqlplus session:
+
+```
+SQL> @config-oracle-db.sql
+```
+
+---
+
 #### Images and Internal Registry
 We are going to set up an Amazon Elastic Container Registry. For this we will first create a repository
 
