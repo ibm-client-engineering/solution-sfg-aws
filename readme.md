@@ -819,37 +819,60 @@ aws rds create-db-instance \
 ---
 
 #### **Configure Oracle RDS Instance**
-Now that we have an Oracle RDS instance, we are going to configure the database in preparation for Sterling B2Bi installation.
 
-There are recommended and mandatory settings in terms of Oracle init parameter configurations. When using an AWS Oracle RDS instance, all of the folliowing mandatory settings are already set by default.
+Configure a pod in the `sterling` namespace called `oracleclient` using the below yaml:
 
-Reference: [Mandatory Oracle init parameters](https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=checklist-mandatory-oracle-init-parameters)
-
-However, among the following recommended settings, only *open_cursor* setting is not met and could not be updated given permission limitations (ALTER SYSTEM is not allowed), since AWS Oracle RDS is a fully managed instance. But, this is not a required setting.
-
-Reference: [Recommended Oracle init parameters](https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=checklist-recommended-oracle-init-parameters)
-
-Next, you will need to be able to connect and execute SQL commands against your Oracle RDS instance.
-
-1. Create a bastion host with your key pair
-   1. In the same VPC as your Oracle RDS instance (specially if it is private)
-   2. In a subnet with an Internet gateway
-   3. With a security group defined for SSH access
-   4. And another security group with access to the Oracle RDS instance
-2. Connect to the bastion host using SSH and your key pair
-3. Install SQL client such as [SQL*Plus to connect to your Oracle database instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ConnectToOracleInstance.SQLPlus.html)
-
-Connect to your Oracle RDS instance:
-
+`oracle_client.yaml`
 ```
-sqlplus 'user_name@password(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=dns_name)(PORT=port))(CONNECT_DATA=(SID=database_name)))'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: oracleclient
+  labels:
+    app: oracleclient
+spec:
+  containers:
+    - name: instantclient
+      image: ghcr.io/oracle/oraclelinux8-instantclient:19
+      command: ["sleep"]
+      args: ["infinity"]
 ```
 
-Using the AWS console, you can lookup host or dns name (Endpoint) and port under the *Connectivity and security* tab and the DB name under the *Configuration* tab - for example (using *ORCL*, the default Oracle RDS instance DB name):
+Create the pod
+```
+kubectl apply -f oracle_client.yaml
+```
+Verify the pod is up and running
 
 ```
-sqlplus "oracleuser/oraclepass@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=sterling-mft-db.some-dns.us-east-1.rds.amazonaws.com)(PORT=1521))(CONNECT_DATA=(SID=ORCL)))"
+kubectl get pods
+NAME           READY   STATUS    RESTARTS   AGE
+oracleclient   1/1     Running   0          22m
 ```
+
+Connect to your db instance. The user is `oracleuser` and the password is `oraclepass` as we set when we created the RDS instance. The port will be `1521`. We will retrieve the endpoint with the `aws` cli and export it as a var called `$endpoint`.
+
+```
+endpoint=$(aws rds describe-db-instances --query "DBInstances[*].Endpoint.Address" --output text)
+
+kubectl exec -it oracleclient -- sqlplus "oracleuser/oraclepass@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=$endpoint)(PORT=1521))(CONNECT_DATA=(SID=ORCL)))"
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Wed Feb 15 17:16:05 2023
+Version 19.18.0.0.0
+
+Copyright (c) 1982, 2022, Oracle.  All rights reserved.
+
+Last Successful login time: Wed Feb 15 2023 17:07:24 +00:00
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.17.0.0.0
+
+SQL>
+
+```
+
+Now that we have an Oracle RDS instance and we are logged in, we are going to configure the database in preparation for Sterling B2Bi installation.
 
 Run the following SQL script that will do the following:
 
@@ -858,6 +881,7 @@ Run the following SQL script that will do the following:
 3. Create a new user for Sterling
 4. Grant permissions to the Sterling user
 
+Copy and paste the following into the SQL cmdline prompt.
 ```
 /*
 Create tablespace
@@ -892,13 +916,6 @@ GRANT ALTER SESSION TO SI_USER;
 GRANT CREATE SESSION TO SI_USER;
 GRANT CREATE VIEW TO SI_USER;
 ```
-
-You can save the above SQL statements in a SQL file named *config-oracle-db.sql* on your bastion host, and then execute the following in a sqlplus session:
-
-```
-SQL> @config-oracle-db.sql
-```
-
 ---
 
 #### Images and Internal Registry
