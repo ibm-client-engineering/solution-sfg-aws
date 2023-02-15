@@ -815,6 +815,7 @@ aws rds create-db-instance \
     --backup-retention-period 3
 ```
 
+A default DB called `ORCL` will be created
 
 ---
 
@@ -1127,6 +1128,24 @@ The following links are for the required helm charts for this installation
 Download the `ibm-sfg-prod` helm charts from the above link and extract
 ```
 
+```
+
+Create our secrets
+
+`b2b-db-secret.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: b2b-db-secret
+type: Opaque
+stringData:
+  DB_USER: oracleuser
+  DB_PASSWORD: oraclepass
+```
+
+```
+kubectl apply -f b2b-db-secret.yaml
 ```
 
 
