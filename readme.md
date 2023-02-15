@@ -1048,7 +1048,88 @@ kubectl apply -f nginx-deploy.yaml
 ---
 
 ### Installation
-:construction:
+
+Create a sidecar pod and storage volume to stage the files required to deploy.
+
+`sterlingtoolkitdeploy.yaml`
+```
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sterlingtoolkit-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sterlingtoolkit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sterlingtoolkit
+  template:
+    metadata:
+      labels:
+        app: sterlingtoolkit
+    spec:
+      containers:
+      - name: sterlingtoolkit
+        image: centos
+        command: ["/bin/sh"]
+        args: ["-c", "mkdir -p /var/nfs-data/documents /var/nfs-data/resources /var/nfs-data/logs && chmod 777 /var/nfs-data/* && sleep infinity"]
+        volumeMounts:
+        - mountPath: /var/nfs-data
+          name: storagevol
+      volumes:
+      - name: storagevol
+        persistentVolumeClaim:
+          claimName: sterlingtoolkit-pvc
+```
+
+Create the sidecar pod and volume
+```
+kubectl apply -f sterlingtoolkitdeploy.yaml
+```
+
+Download the Oracle JDBC driver
+
+https://download.oracle.com/otn-pub/otn_software/jdbc/219/ojdbc11.jar
+
+Determine our pod name
+```
+kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+oracleclient                       1/1     Running   0          3h55m
+sterlingtoolkit-577b8c56f5-dchdx   1/1     Running   0          4m59s
+```
+
+Upload the jar file to the appropriate folder
+
+```
+kubectl cp ojdbc11.jar sterlingtoolkit-577b8c56f5-dchdx:/tmp
+```
+#### Download the Sterling helm charts
+
+The following links are for the required helm charts for this installation
+
+[ibm-sfg-prod-2.1.1](https://github.com/IBM/charts/raw/master/repo/ibm-helm/ibm-sfg-prod-2.1.1.tgz)
+
+[ibm-b2bi-prod-2.1.1](https://github.com/IBM/charts/raw/master/repo/ibm-helm/ibm-b2bi-prod-2.1.1.tgz)
+
+Download the `ibm-sfg-prod` helm charts from the above link and extract
+```
+
+```
+
+
 
 ## Security
 :construction:
