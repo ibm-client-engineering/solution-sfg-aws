@@ -714,6 +714,26 @@ helm install sterlingmq mq-helm-eks/ibm-mq -f sterling_values.yaml \
 
 The command above will create a loadbalancer with port 1414 as the access port for the queue manager and will create an ingress for the web console provided you've installed NGINX ingress capability into the cluster.
 
+Create the MQ Secret 
+
+`mqsecret.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mq-secret
+type: Opaque
+stringData:
+    adminPassword: mqpasswd
+    appPassword: mqpasswd
+```
+
+apply the secret to the sterling namespace
+
+```
+kubectl apply -f mqsecret.yaml -n sterling
+```
+
 ---
 
 #### RDS/DB Schema
@@ -1049,6 +1069,44 @@ kubectl apply -f nginx-deploy.yaml
 ---
 
 ### Installation
+
+Create the following secrets in the `sterling` namespace
+
+`sterling-secrets.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: b2b-system-passphrase-secret
+type: Opaque
+stringData:
+  SYSTEM_PASSPHRASE: password
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mq-secret
+type: Opaque
+stringData:
+    adminPassword: mqpasswd
+    appPassword: mqpasswd
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: b2b-db-secret
+type: Opaque
+stringData:
+  DB_USER: oracleuser
+  DB_PASSWORD: oraclepass
+```
+
+Apply it 
+```
+kubectl apply -f sterling-secrets.yaml -n sterling
+```
+
+
 
 Create a sidecar pod and storage volume to stage the files required to deploy.
 
