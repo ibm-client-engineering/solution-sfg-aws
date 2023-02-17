@@ -982,6 +982,27 @@ kubectl create secret docker-registry sterling-secret \
 --docker-email="YOUR_EMAIL"
 ```
 
+If we are just using the IBM repository, create a docker pull secret for it using your IBM pull secret that can be retrieved from here:
+
+https://myibm.ibm.com/products-services/containerlibrary
+
+```
+export ibm_pull_secret="MY PULL SECRET"
+
+kubectl create secret docker-registry ibm-pull-secret \
+--docker-server="cp.icr.io" \
+--docker-username=cp \
+--docker-password=$ibm_pull_secret \
+--docker-email="YOUR_EMAIL"
+```
+
+Patch your default service account for the namespace
+
+```
+kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "ibm-pull-secret"}]}'
+```
+
+
 #### **Install NGINX Ingress**
 
 Create an IAM policy.
@@ -1160,7 +1181,7 @@ kubectl apply -f sterlingtoolkitdeploy.yaml
 
 Download the Oracle JDBC driver
 
-https://download.oracle.com/otn-pub/otn_software/jdbc/219/ojdbc11.jar
+https://download.oracle.com/otn-pub/otn_software/jdbc/219/ojdbc8.jar
 
 Determine our pod name
 ```
@@ -1173,7 +1194,7 @@ sterlingtoolkit-577b8c56f5-dchdx   1/1     Running   0          4m59s
 Upload the jar file to the appropriate folder
 
 ```
-kubectl cp ojdbc11.jar sterlingtoolkit-577b8c56f5-dchdx:/tmp
+kubectl cp ojdbc11.jar sterlingtoolkit-577b8c56f5-dchdx:/var/nfs-data/resources
 ```
 #### Download the Sterling helm charts
 
