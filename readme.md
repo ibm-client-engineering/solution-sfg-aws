@@ -714,6 +714,26 @@ helm install sterlingmq mq-helm-eks/ibm-mq -f sterling_values.yaml \
 
 The command above will create a loadbalancer with port 1414 as the access port for the queue manager and will create an ingress for the web console provided you've installed NGINX ingress capability into the cluster.
 
+Create the MQ Secret 
+
+`mqsecret.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mq-secret
+type: Opaque
+stringData:
+    adminPassword: mqpasswd
+    appPassword: mqpasswd
+```
+
+apply the secret to the sterling namespace
+
+```
+kubectl apply -f mqsecret.yaml -n sterling
+```
+
 ---
 
 #### RDS/DB Schema
@@ -815,41 +835,65 @@ aws rds create-db-instance \
     --backup-retention-period 3
 ```
 
+A default DB called `ORCL` will be created
 
 ---
 
 #### **Configure Oracle RDS Instance**
-Now that we have an Oracle RDS instance, we are going to configure the database in preparation for Sterling B2Bi installation.
 
-There are recommended and mandatory settings in terms of Oracle init parameter configurations. When using an AWS Oracle RDS instance, all of the folliowing mandatory settings are already set by default.
+Configure a pod in the `sterling` namespace called `oracleclient` using the below yaml:
 
-Reference: [Mandatory Oracle init parameters](https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=checklist-mandatory-oracle-init-parameters)
-
-However, among the following recommended settings, only *open_cursor* setting is not met and could not be updated given permission limitations (ALTER SYSTEM is not allowed), since AWS Oracle RDS is a fully managed instance. But, this is not a required setting.
-
-Reference: [Recommended Oracle init parameters](https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=checklist-recommended-oracle-init-parameters)
-
-Next, you will need to be able to connect and execute SQL commands against your Oracle RDS instance.
-
-1. Create a bastion host with your key pair
-   1. In the same VPC as your Oracle RDS instance (specially if it is private)
-   2. In a subnet with an Internet gateway
-   3. With a security group defined for SSH access
-   4. And another security group with access to the Oracle RDS instance
-2. Connect to the bastion host using SSH and your key pair
-3. Install SQL client such as [SQL*Plus to connect to your Oracle database instance](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_ConnectToOracleInstance.SQLPlus.html)
-
-Connect to your Oracle RDS instance:
-
+`oracle_client.yaml`
 ```
-sqlplus 'user_name@password(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=dns_name)(PORT=port))(CONNECT_DATA=(SID=database_name)))'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: oracleclient
+  labels:
+    app: oracleclient
+spec:
+  containers:
+    - name: instantclient
+      image: ghcr.io/oracle/oraclelinux8-instantclient:19
+      command: ["sleep"]
+      args: ["infinity"]
 ```
 
-Using the AWS console, you can lookup host or dns name (Endpoint) and port under the *Connectivity and security* tab and the DB name under the *Configuration* tab - for example (using *ORCL*, the default Oracle RDS instance DB name):
+Create the pod
+```
+kubectl apply -f oracle_client.yaml
+```
+Verify the pod is up and running
 
 ```
-sqlplus "oracleuser/oraclepass@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=sterling-mft-db.some-dns.us-east-1.rds.amazonaws.com)(PORT=1521))(CONNECT_DATA=(SID=ORCL)))"
+kubectl get pods
+NAME           READY   STATUS    RESTARTS   AGE
+oracleclient   1/1     Running   0          22m
 ```
+
+Connect to your db instance. The user is `oracleuser` and the password is `oraclepass` as we set when we created the RDS instance. The port will be `1521`. We will retrieve the endpoint with the `aws` cli and export it as a var called `$endpoint`.
+
+```
+endpoint=$(aws rds describe-db-instances --query "DBInstances[*].Endpoint.Address" --output text)
+
+kubectl exec -it oracleclient -- sqlplus "oracleuser/oraclepass@(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=$endpoint)(PORT=1521))(CONNECT_DATA=(SID=ORCL)))"
+
+SQL*Plus: Release 19.0.0.0.0 - Production on Wed Feb 15 17:16:05 2023
+Version 19.18.0.0.0
+
+Copyright (c) 1982, 2022, Oracle.  All rights reserved.
+
+Last Successful login time: Wed Feb 15 2023 17:07:24 +00:00
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.17.0.0.0
+
+SQL>
+
+```
+
+Now that we have an Oracle RDS instance and we are logged in, we are going to configure the database in preparation for Sterling B2Bi installation.
 
 Run the following SQL script that will do the following:
 
@@ -858,6 +902,7 @@ Run the following SQL script that will do the following:
 3. Create a new user for Sterling
 4. Grant permissions to the Sterling user
 
+Copy and paste the following into the SQL cmdline prompt.
 ```
 /*
 Create tablespace
@@ -892,13 +937,6 @@ GRANT ALTER SESSION TO SI_USER;
 GRANT CREATE SESSION TO SI_USER;
 GRANT CREATE VIEW TO SI_USER;
 ```
-
-You can save the above SQL statements in a SQL file named *config-oracle-db.sql* on your bastion host, and then execute the following in a sqlplus session:
-
-```
-SQL> @config-oracle-db.sql
-```
-
 ---
 
 #### Images and Internal Registry
@@ -943,6 +981,27 @@ kubectl create secret docker-registry sterling-secret \
 --docker-password=$login_passwd \
 --docker-email="YOUR_EMAIL"
 ```
+
+If we are just using the IBM repository, create a docker pull secret for it using your IBM pull secret that can be retrieved from here:
+
+https://myibm.ibm.com/products-services/containerlibrary
+
+```
+export ibm_pull_secret="MY PULL SECRET"
+
+kubectl create secret docker-registry ibm-pull-secret \
+--docker-server="cp.icr.io" \
+--docker-username=cp \
+--docker-password=$ibm_pull_secret \
+--docker-email="YOUR_EMAIL"
+```
+
+Patch your default service account for the namespace
+
+```
+kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "ibm-pull-secret"}]}'
+```
+
 
 #### **Install NGINX Ingress**
 
@@ -1031,7 +1090,144 @@ kubectl apply -f nginx-deploy.yaml
 ---
 
 ### Installation
-:construction:
+
+Create the following secrets in the `sterling` namespace
+
+`sterling-secrets.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: b2b-system-passphrase-secret
+type: Opaque
+stringData:
+  SYSTEM_PASSPHRASE: password
+---
+apiVersion: v1
+kind: Secret
+metadata:
+    name: mq-secret
+type: Opaque
+stringData:
+    adminPassword: mqpasswd
+    appPassword: mqpasswd
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: b2b-db-secret
+type: Opaque
+stringData:
+  DB_USER: oracleuser
+  DB_PASSWORD: oraclepass
+```
+
+Apply it 
+```
+kubectl apply -f sterling-secrets.yaml -n sterling
+```
+
+
+
+Create a sidecar pod and storage volume to stage the files required to deploy.
+
+`sterlingtoolkitdeploy.yaml`
+```
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sterlingtoolkit-pvc
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sterlingtoolkit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sterlingtoolkit
+  template:
+    metadata:
+      labels:
+        app: sterlingtoolkit
+    spec:
+      containers:
+      - name: sterlingtoolkit
+        image: centos
+        command: ["/bin/sh"]
+        args: ["-c", "mkdir -p /var/nfs-data/documents /var/nfs-data/resources /var/nfs-data/logs && chmod 777 /var/nfs-data/* && sleep infinity"]
+        volumeMounts:
+        - mountPath: /var/nfs-data
+          name: storagevol
+      volumes:
+      - name: storagevol
+        persistentVolumeClaim:
+          claimName: sterlingtoolkit-pvc
+```
+
+Create the sidecar pod and volume
+```
+kubectl apply -f sterlingtoolkitdeploy.yaml
+```
+
+Download the Oracle JDBC driver
+
+https://download.oracle.com/otn-pub/otn_software/jdbc/219/ojdbc8.jar
+
+Determine our pod name
+```
+kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+oracleclient                       1/1     Running   0          3h55m
+sterlingtoolkit-577b8c56f5-dchdx   1/1     Running   0          4m59s
+```
+
+Upload the jar file to the appropriate folder
+
+```
+kubectl cp ojdbc11.jar sterlingtoolkit-577b8c56f5-dchdx:/var/nfs-data/resources
+```
+#### Download the Sterling helm charts
+
+The following links are for the required helm charts for this installation
+
+[ibm-sfg-prod-2.1.1](https://github.com/IBM/charts/raw/master/repo/ibm-helm/ibm-sfg-prod-2.1.1.tgz)
+
+[ibm-b2bi-prod-2.1.1](https://github.com/IBM/charts/raw/master/repo/ibm-helm/ibm-b2bi-prod-2.1.1.tgz)
+
+Download the `ibm-sfg-prod` helm charts from the above link and extract
+```
+
+```
+
+Create our secrets
+
+`b2b-db-secret.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: b2b-db-secret
+type: Opaque
+stringData:
+  DB_USER: oracleuser
+  DB_PASSWORD: oraclepass
+```
+
+```
+kubectl apply -f b2b-db-secret.yaml
+```
+
+
 
 ## Security
 :construction:
