@@ -1566,10 +1566,10 @@ asi:
       host: "ibm.com"
       tls:
         enabled: true
-        secretName:
+#        secretName:
       extraPaths: []
     external:
-      host:
+      host: "ibm.com"
       tls:
         enabled: true
         secretName:
@@ -1693,13 +1693,13 @@ ac:
 
   ingress:
     internal:
-      host:
+      host: "ibm.com"
       tls:
         enabled: true
         secretName:
       extraPaths: []
     external:
-      host:
+      host: "ibm.com"
       tls:
         enabled: true
         secretName:
@@ -1810,10 +1810,10 @@ api:
 
   ingress:
     internal:
-      host: "sample.com"
+      host: "ibm.com"
       tls:
         enabled: true
-        secretName: ""
+        secretName:
 
   extraPVCs: []
   extraInitContainers: []
