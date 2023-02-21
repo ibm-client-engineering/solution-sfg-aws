@@ -944,7 +944,7 @@ EXEC rdsadmin.rdsadmin_util.alter_default_tablespace(tablespace_name => 'SI_USER
 /*
 Create new user for Sterling
 */
-CREATE USER SI_USER IDENTIFIED BY 'dbpassword';
+CREATE USER SI_USER IDENTIFIED BY dbpassword;
 
 /*
 Grant necessary permissions to newly created Sterling user
