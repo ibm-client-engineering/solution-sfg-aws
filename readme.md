@@ -1276,6 +1276,34 @@ The following links are for the required helm charts for this installation
 
 Download the `ibm-b2bi-prod` helm charts from the above link.
 
+Extract the `ibm-b2bi-prod-2.1.1.tgz` file
+```
+tar zxvf ibm-b2bi-prod-2.1.1.tgz
+```
+We will need to update the Kubernetes version in the `Chart.yaml`
+
+```
+cd ibm-b2bi-prod
+```
+
+Retrieve our EKS kubernetes version
+```
+kubectl version --short
+
+Client Version: v1.23.0
+Kustomize Version: v4.5.7
+Server Version: v1.23.14-eks-ffeb93d
+```
+Make a note of the `Server Version` and edit the `Chart.yaml` file in the `ibm-b2bi-prod` directory. Update the following:
+
+```
+kubeVersion: '>=v1.21'
+```
+should be changed to our Server Version
+```
+kubeVersion: '>=v1.23.14-eks-ffeb93d'
+```
+
 Create a sterling override file similar to this one:
 
 `sterling-overrides-b2bi.yaml`
@@ -1926,7 +1954,7 @@ purge:
 ```
 
 ```
-helm install sterling-b2bi -f sterling-b2bi-values.yaml ibm-b2bi-prod --timeout 3600s --namespace sterling
+helm install sterling-b2bi -f sterling-b2bi-values.yaml /path/to/ibm-b2bi-prod --timeout 3600s --namespace sterling
 ```
 
 Installation should take approximately 40 minutes
