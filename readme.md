@@ -951,6 +951,7 @@ Grant necessary permissions to newly created Sterling user
 */
 GRANT "CONNECT" TO SI_USER;
 ALTER USER SI_USER DEFAULT ROLE "CONNECT";
+ALTER USER SI_USER QUOTA 100G ON SI_USERS;
 GRANT CREATE SEQUENCE TO SI_USER;
 GRANT CREATE TABLE TO SI_USER;
 GRANT CREATE TRIGGER TO SI_USER;
@@ -963,6 +964,7 @@ GRANT SELECT ANY DICTIONARY TO SI_USER;
 GRANT ALTER SESSION TO SI_USER;
 GRANT CREATE SESSION TO SI_USER;
 GRANT CREATE VIEW TO SI_USER;
+
 ```
 ---
 
@@ -1365,8 +1367,9 @@ ingress:
   port:
 
 dataSetup:
+# enabled should be set to "true" for first time installations. Subsequent helm upgrades should be performed with enabled set to "false" otherwise they will fail.
   enabled: false
-  upgrade: false
+  upgrade: true
   image:
     repository: "cp.icr.io/cp/ibm-b2bi/b2bi-dbsetup"
     tag: "6.1.2.1"
@@ -1405,7 +1408,8 @@ setupCfg:
 
   # Provide the DB attributes
   dbVendor: Oracle
-  dbHost: sterling-mft-east-db.cehubq1eqcri.us-east-1.rds.amazonaws.com
+  # This should point to your RDS endpoint for your database
+  dbHost: sterling-mft-db.cehubq1eqcri.us-east-1.rds.amazonaws.com
   dbPort: 1521
   dbData: ORCL
   dbDrivers: ojdbc8.jar
