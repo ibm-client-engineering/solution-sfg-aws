@@ -868,7 +868,7 @@ A default DB called `ORCL` will be created
 
 #### **Configure Oracle RDS Instance**
 
-Configure a pod in the `sterling` namespace called `oracleclient` using the below yaml:
+Configure a pod in the `sterling` in your namespace using the below yaml:
 
 `oracle_client.yaml`
 ```
