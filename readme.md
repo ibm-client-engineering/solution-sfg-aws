@@ -19,13 +19,13 @@
       - [Elastic File Service (EFS) on EKS](#elastic-file-service-efs-on-eks)
       - [Create an IAM policy and role](#create-an-iam-policy-and-role)
       - [Deploy Amazon EFS CSI driver to an Amazon EKS cluster](#deploy-amazon-efs-csi-driver-to-an-amazon-eks-cluster)
+      - [Install NGINX Ingress and AWS Loadbalancer](#install-nginx-ingress)
       - [Add Security Policies](#add-security-policies)
       - [Security Policies](#security-policies)
       - [Helm Chart installation](#helm-chart-installation)
       - [RDS/DB Schema](#rdsdb-schema)
       - [**Configure Oracle RDS Instance**](#configure-oracle-rds-instance)
       - [Images and Internal Registry](#images-and-internal-registry)
-      - [**Install NGINX Ingress**](#install-nginx-ingress)
     - [Installation](#installation)
   - [Security](#security)
   - [Testing](#testing)
@@ -396,13 +396,17 @@ sed -i 's/fileSystemId:.*/fileSystemId: fs-071439ffb7e10b67b/' EFSStorageClass.y
 Download a `StorageClass` manifest for Amazon EFS.
 ```
 curl -o EFSStorageClass.yaml https://raw.githubusercontent.com/kubernetes-sigs/aws-efs-csi-driver/master/examples/kubernetes/dynamic_provisioning/specs/storageclass.yaml
+
 ```
-Also make sure your storageclass looks like this:
+
+Configure two separate EFS storage classes, one for Sterling and one for MQ. The reason for this is MQ requires specific userids to work happily when using shared storage whereas Sterling requires its own user to own stuff and might cause conflicts. By specifying separate classes we eliminate the problem. Make sure the `fileSystemId` is the same for both.
+
+`EFSStorageClass.yaml`
 ```
 kind: StorageClass
 apiVersion: storage.k8s.io/v1
 metadata:
-  name: efs-sc
+  name: efs-mq-sc
 provisioner: efs.csi.aws.com
 mountOptions:
   - tls
@@ -415,6 +419,23 @@ parameters:
   basePath: "/efs/dynamic_provisioning" # optional
   uid: "2001" # This tells the provisioner to make the owner this uid
   gid: "65534" # This tells the provisioner to make the group owner this gid
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-sfg-sc
+provisioner: efs.csi.aws.com
+mountOptions:
+  - tls
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-071439ffb7e10b67b
+  directoryPerms: "775"
+  gidRangeStart: "1000" # optional
+  gidRangeEnd: "3000" # optional
+  basePath: "/efs/dynamic_provisioning" # optional
+  uid: "1010" # This tells the provisioner to make the owner this uid
+  gid: "1010" # This tells the provisioner to make the group owner this gid
 ```
 
 Deploy the storage class.
@@ -578,6 +599,8 @@ Apply it to the cluster
 kubectl apply -f custom-podsecpolicy.yaml
 ```
 ---
+
+---
 #### Helm Chart installation
 
 ```
@@ -654,17 +677,17 @@ persistence:
     enable: true
     name: "data"
     size: 2Gi
-    storageClassName: "efs-sc"
+    storageClassName: "efs-mq-sc"
   logPVC:
     enable: true
     name: "log"
     size: 2Gi
-    storageClassName: "efs-sc"
+    storageClassName: "efs-mq-sc"
   qmPVC:
     enable: true
     name: "qm"
     size: 2Gi
-    storageClassName: "efs-sc"
+    storageClassName: "efs-mq-sc"
 
 security:
   context:
@@ -724,8 +747,12 @@ metadata:
     name: mq-secret
 type: Opaque
 stringData:
-    adminPassword: mqpasswd
-    appPassword: mqpasswd
+    JMS_USERNAME: mqadmin
+    JMS_PASSWORD: mqpasswd
+# Set these values if we have setup our keystores for MQ
+#  JMS_KEYSTORE_PASSWORD: 
+#  JMS_TRUSTSTORE_PASSWORD: 
+#    
 ```
 
 apply the secret to the sterling namespace
@@ -899,7 +926,7 @@ Run the following SQL script that will do the following:
 
 1. Create a tablespace for user tables and indexes
 2. Set newly created tablespace as default
-3. Create a new user for Sterling
+3. Create a new user for Sterling. This is the user we will be using for the database.
 4. Grant permissions to the Sterling user
 
 Copy and paste the following into the SQL cmdline prompt.
@@ -917,13 +944,14 @@ EXEC rdsadmin.rdsadmin_util.alter_default_tablespace(tablespace_name => 'SI_USER
 /*
 Create new user for Sterling
 */
-CREATE USER SI_USER IDENTIFIED BY SI_USER_pass;
+CREATE USER SI_USER IDENTIFIED BY dbpassword;
 
 /*
 Grant necessary permissions to newly created Sterling user
 */
 GRANT "CONNECT" TO SI_USER;
 ALTER USER SI_USER DEFAULT ROLE "CONNECT";
+ALTER USER SI_USER QUOTA 100G ON SI_USERS;
 GRANT CREATE SEQUENCE TO SI_USER;
 GRANT CREATE TABLE TO SI_USER;
 GRANT CREATE TRIGGER TO SI_USER;
@@ -936,6 +964,7 @@ GRANT SELECT ANY DICTIONARY TO SI_USER;
 GRANT ALTER SESSION TO SI_USER;
 GRANT CREATE SESSION TO SI_USER;
 GRANT CREATE VIEW TO SI_USER;
+
 ```
 ---
 
@@ -1047,14 +1076,14 @@ eksctl create iamserviceaccount \
   --attach-policy-arn=arn:aws:iam::748107796891:policy/AWSLoadBalancerControllerIAMPolicy \
   --approve
 ```
+#### Install the AWS Load Balancer Controller.
 
 Install the EKS helm repo
 ```
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update
 ```
-
-Install the AWS Load Balancer Controller.
+Now install the loadbalancer controller
 ```
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
   -n kube-system \
@@ -1063,7 +1092,7 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
   --set serviceAccount.name=aws-load-balancer-controller-mft
 
 ```
-
+Verify the deployment
 ```
 kubectl get deployment -n kube-system aws-load-balancer-controller
 ```
@@ -1079,11 +1108,53 @@ service.beta.kubernetes.io/aws-load-balancer-type: "external"
 service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
 service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
 ```
-
+Final entry should look like this:
+```
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+  labels:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/part-of: ingress-nginx
+    app.kubernetes.io/version: 1.6.4
+  name: ingress-nginx-controller
+  namespace: ingress-nginx
+spec:
+  externalTrafficPolicy: Local
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - appProtocol: http
+    name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - appProtocol: https
+    name: https
+    port: 443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app.kubernetes.io/component: controller
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+  type: LoadBalancer
+```
 Apply the deployment
 ```
 kubectl apply -f nginx-deploy.yaml
 ```
+
 
 
 
@@ -1109,8 +1180,8 @@ metadata:
     name: mq-secret
 type: Opaque
 stringData:
-    adminPassword: mqpasswd
-    appPassword: mqpasswd
+    JMS_USERNAME: app
+    JMS_PASSWORD: mqpasswd
 ---
 apiVersion: v1
 kind: Secret
@@ -1118,16 +1189,15 @@ metadata:
   name: b2b-db-secret
 type: Opaque
 stringData:
-  DB_USER: oracleuser
-  DB_PASSWORD: oraclepass
+  DB_USER: SI_USER
+  DB_PASSWORD: dbpassword
 ```
+As a note, we are setting the user/pass for the database to `SI_USER` with a password of `dbpassword`.
 
-Apply it 
+Apply the secrets.
 ```
 kubectl apply -f sterling-secrets.yaml -n sterling
 ```
-
-
 
 Create a sidecar pod and storage volume to stage the files required to deploy.
 
@@ -1141,7 +1211,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteMany
-  storageClassName: efs-sc
+  storageClassName: efs-sfg-sc
   resources:
     requests:
       storage: 20Gi
@@ -1164,9 +1234,9 @@ spec:
       - name: sterlingtoolkit
         image: centos
         command: ["/bin/sh"]
-        args: ["-c", "mkdir -p /var/nfs-data/documents /var/nfs-data/resources /var/nfs-data/logs && chmod 777 /var/nfs-data/* && sleep infinity"]
+        args: ["-c", "useradd -u 1010 b2biuser && sleep infinity"]
         volumeMounts:
-        - mountPath: /var/nfs-data
+        - mountPath: /var/nfs-data/resources
           name: storagevol
       volumes:
       - name: storagevol
@@ -1204,30 +1274,690 @@ The following links are for the required helm charts for this installation
 
 [ibm-b2bi-prod-2.1.1](https://github.com/IBM/charts/raw/master/repo/ibm-helm/ibm-b2bi-prod-2.1.1.tgz)
 
-Download the `ibm-sfg-prod` helm charts from the above link and extract
+Download the `ibm-b2bi-prod` helm charts from the above link.
+
+Extract the `ibm-b2bi-prod-2.1.1.tgz` file
+```
+tar zxvf ibm-b2bi-prod-2.1.1.tgz
+```
+We will need to update the Kubernetes version in the `Chart.yaml`
+
+```
+cd ibm-b2bi-prod
+```
+
+Retrieve our EKS kubernetes version
+```
+kubectl version --short
+
+Client Version: v1.23.0
+Kustomize Version: v4.5.7
+Server Version: v1.23.14-eks-ffeb93d
+```
+Make a note of the `Server Version` and edit the `Chart.yaml` file in the `ibm-b2bi-prod` directory. Update the following:
+
+```
+kubeVersion: '>=v1.21'
+```
+should be changed to our Server Version
+```
+kubeVersion: '>=v1.23.14-eks-ffeb93d'
+```
+
+Create a sterling override file similar to this one:
+
+`sterling-overrides-b2bi.yaml`
+```
+global:
+  license: true
+  image:
+    repository: "cp.icr.io/cp/ibm-b2bi/b2bi"
+    tag: "6.1.2.1"
+    digest: sha256:7426e3f8d935f28135b3f2b9cd5bc653105af9609606da967cb1cf70ca0b49de
+    pullPolicy: IfNotPresent
+    pullSecret: "ibm-pull-secret"
+  networkPolicies:
+    ingress:
+      enabled: true
+      customPolicies:
+    egress:
+      enabled: true
+      customPolicies:
+
+# Specify architecture (amd64, ppc64le, s390x) and weight to be  used for scheduling as follows :
+# #   0 - Do not use
+# #   1 - Least preferred
+# #   2 - No Preference
+# #   3 - Most preferred
+arch:
+  amd64: "2 - No Preference"
+  ppc64le: "2 - No Preference"
+  s390x: "2 - No Preference"
+
+serviceAccount:
+  name: default
+
+resourcesInit:
+  enabled: false
+  image:
+    repository: "cp.icr.io/cp/ibm-b2bi"
+    name: "b2bi-resources"
+    tag: "6.1.2.1"
+    digest: sha256:660f8b8a48985d2981dc1bb31b9667aabfe4b8829221a8e48e64e3de01eaed08
+    pullPolicy: "IfNotPresent"
+  command:
+
+persistence:
+  enabled: true
+  useDynamicProvisioning: true
+
+appResourcesPVC:
+  enabled: true
+  storageClassName: "efs-sfg-sc"
+  selector:
+    label: "intent"
+    value: "resources"
+  accessMode: ReadOnlyMany
+  size: 100Mi
+  preDefinedResourcePVCName: sterlingtoolkit-pvc
+
+appLogsPVC:
+  storageClassName: "efs-sfg-sc"
+  selector:
+    label: "intent"
+    value: "logs"
+  accessMode: ReadWriteMany
+  size: 500Mi
+  preDefinedLogsPVCName:
+
+appDocumentsPVC:
+  enabled: true
+  storageClassName: "efs-sfg-sc"
+  selector:
+    label: "intent"
+    value: "documents"
+  accessMode: ReadWriteMany
+  size: 500Mi
+  preDefinedDocumentPVCName:
+
+extraPVCs: []
+
+security:
+  supplementalGroups: [65534]
+  fsGroup:
+  runAsUser:
+  runAsGroup:
+
+ingress:
+  enabled: true
+  controller: "nginx"
+  annotations: {}
+  port:
+
+dataSetup:
+# enabled should be set to "true" for first time installations. Subsequent helm upgrades should be performed with enabled set to "false" otherwise they will fail.
+  enabled: false
+  upgrade: true
+  image:
+    repository: "cp.icr.io/cp/ibm-b2bi/b2bi-dbsetup"
+    tag: "6.1.2.1"
+    digest: sha256:d90c1f4a0d74a69fb00aa52a55540a5780d2d6d48867b41f31a647fea3be1f46
+    pullPolicy: IfNotPresent
+    pullSecret: "ibm-pull-secret"
+
+env:
+  tz: "UTC"
+  upgradeCompatibilityVerified: false
+  debugMode: false
+  extraEnvs: []
+
+logs:
+  enableAppLogOnConsole: true
+applyPolicyToKubeSystem: false
+
+integrations:
+  seasIntegration:
+    isEnabled: false
+    seasVersion: "1.0"
+#setup.cfg configuration starts here. Property names must follow camelCase format.
+setupCfg:
+  #upgrade: false
+  basePort: 50000
+  #License - specify values as true/false
+  licenseAcceptEnableSfg: true
+  licenseAcceptEnableEbics: true
+  licenseAcceptEnableFinancialServices: true
+  licenseAcceptEnableFileOperation: true
+
+  # Name of system passphrase secret if available
+  systemPassphraseSecret: b2b-system-passphrase-secret
+  enableFipsMode: false
+  nistComplianceMode: "off"
+
+  # Provide the DB attributes
+  dbVendor: Oracle
+  # This should point to your RDS endpoint for your database
+  dbHost: sterling-mft-db.cehubq1eqcri.us-east-1.rds.amazonaws.com
+  dbPort: 1521
+  dbData: ORCL
+  dbDrivers: ojdbc8.jar
+  dbCreateSchema: true
+  oracleUseServiceName: false
+  # Values can be either true or false
+  usessl: false
+  dbSecret: b2b-db-secret
+  # When usessl is set to true
+  dbTruststore:
+  dbTruststoreSecret:
+  dbKeystore:
+  dbKeystoreSecret:
+  adminEmailAddress: kramerro@us.ibm.com
+  # Provide the SMTP host details
+  smtpHost: 127.0.0.1
+  softStopTimeout:
+
+  #WMQ
+  # This is where we stick our MQ values
+  #JMS properties are optional if jmsVendor is empty
+  #To use IBMMQ for communication between ASI & AC, change property to jmsVendor: IBMMQ
+  # and provide other connection details
+  jmsVendor: IBMMQ
+  # Provide the name of connection factory class.
+  jmsConnectionFactory: com.ibm.mq.jms.MQQueueConnectionFactory
+  jmsConnectionFactoryInstantiator:
+  jmsQueueName: DEV.QUEUE.1
+  jmsHost: 10.100.98.89
+  jmsPort: 1414
+  jmsConnectionNameList:
+  # Applicable for IBMMQ
+  jmsChannel: DEV.APP.SVRCONN
+  jmsEnableSsl: false
+  # Name of JMS secret if available
+  jmsSecret: mq-secret
+  # When jmsEnableSsl is true
+  jmsKeystorePath:
+  jmsKeystoreSecret:
+  jmsTruststorePath:
+  jmsTruststoreSecret:
+  jmsCiphersuite:
+  jmsProtocol: TLSv1.2
+  # Liberty Profile SSL Config. Specify Liberty keystore file name including it's path relative to the mounted resources volume location, if applicable.
+  # If libertyKeystoreSecret is mentioned, provide the name of the key holding the certificate data.
+  libertyKeystoreLocation:
+  # Name of Liberty keystore secret containing the certificate, if applicable
+  libertyKeystoreSecret:
+  libertyProtocol: TLSv1.2
+  # Name of Liberty secret if available
+  libertySecret:
+  libertyJvmOptions:
+  # Default document storage option. Can be set to one of the below values
+  # DB - Database (default)
+  # FS - File System
+  defaultDocumentStorageType: DB
+  # restartCluster can be set to true to restart the application cluster by cleaning up all previous node entries, locks and set the schedules to node1.
+  restartCluster: false
+  #Enable SSL over RMI calls
+  useSslForRmi: true
+  # Name of the RMI Secret if available.
+  rmiTlsSecretName:
+
+asi:
+  replicaCount: 1
+
+  env:
+    jvmOptions:
+    #Refer to global env.extraEnvs for sample values
+    extraEnvs: []
+
+  frontendService:
+    type: ClusterIP
+    ports:
+      http:
+        name: http
+        port: 35000
+        targetPort: http
+        nodePort: 30000
+        protocol: TCP
+      https:
+        name: https
+        port: 35001
+        targetPort: https
+        nodePort: 30001
+        protocol: TCP
+      soa:
+        name: soa
+        port: 35002
+        targetPort: soa
+        nodePort: 30002
+        protocol: TCP
+      soassl:
+        name: soassl
+        port: 35003
+        targetPort: soassl
+        nodePort: 30003
+        protocol: TCP
+      restHttpAdapter:
+        name: rest-adapter
+        port: 35007
+        targetPort: rest-adapter
+        nodePort: 30007
+        protocol: TCP
+    extraPorts: []
+    loadBalancerIP:
+    annotations: {}
+
+  backendService:
+    type: LoadBalancer
+    ports:
+      - name: adapter-1
+        port: 30201
+        targetPort: 30201
+        nodePort: 30201
+        protocol: TCP
+    portRanges:
+      - name: adapters
+        portRange: 30301-30400
+        targetPortRange: 30301-30400
+        nodePortRange: 30301-30400
+        protocol: TCP
+    loadBalancerIP:
+    annotations: {}
+
+  livenessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 30
+    periodSeconds: 60
+
+  # command - command to be executed
+  # arg1, arg2.. - command arguments
+  readinessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 60
+    command:
+    arg: []
+
+  startupProbe:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 60
+    failureThreshold: 3
+
+  internalAccess:
+    enableHttps: true
+    httpsPort:
+    tlsSecretName:
+
+  externalAccess:
+    protocol: http
+    address:
+    port:
+
+  ingress:
+    internal:
+      host: "ibm.com"
+      tls:
+        enabled: true
+#        secretName:
+      extraPaths: []
+    external:
+      host: "ibm.com"
+      tls:
+        enabled: true
+        secretName:
+      extraPaths: []
+
+  extraPVCs: []
+  extraInitContainers: []
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      ephemeral-storage: "4Gi"
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+      ephemeral-storage: "2Gi"
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 60
+
+  defaultPodDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  # for pod Affinity and podAntiAffinity
+  extraLabels: {}
+    #asiLabel: asiValue
+
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+
+  topologySpreadConstraints: []
+  tolerations: []
+
+  extraSecrets: []
+  extraConfigMaps: []
+  myFgAccess:
+    myFgPort:
+    myFgProtocol:
+
+  hostAliases: []
+  performanceTuning:
+    allocateMemToBI: false
+    allocateMemToSAP: false
+    allocateMemToCLA: false
+    threadsPerCore: 4
+    override: []
+
+  networkPolicies:
+    ingress:
+      customPolicies:
+    egress:
+      customPolicies:
+
+ac:
+  replicaCount: 1
+  env:
+    jvmOptions:
+    #Refer to global env.extraEnvs for sample values
+    extraEnvs: []
+
+  frontendService:
+    type: ClusterIP
+    ports:
+      http:
+        name: http
+        port: 35004
+        targetPort: http
+        nodePort: 30004
+        protocol: TCP
+    extraPorts: []
+    loadBalancerIP:
+    annotations: {}
+
+  backendService:
+    type: LoadBalancer
+    ports:
+      - name: adapter-1
+        port: 30401
+        targetPort: 30401
+        nodePort: 30401
+        protocol: TCP
+    portRanges:
+      - name: adapters
+        portRange: 30501-30600
+        targetPortRange: 30501-30600
+        nodePortRange: 30501-30600
+        protocol: TCP
+    loadBalancerIP:
+    annotations: {}
+
+  livenessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 60
+
+  readinessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 60
+    command:
+    arg: []
+
+  internalAccess:
+    enableHttps: true
+    tlsSecretName:
+
+  ingress:
+    internal:
+      host: "ibm.com"
+      tls:
+        enabled: true
+        secretName:
+      extraPaths: []
+    external:
+      host: "ibm.com"
+      tls:
+        enabled: true
+        secretName:
+      extraPaths: []
+
+  extraPVCs: []
+  extraInitContainers: []
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+      ephemeral-storage: "4Gi"
+    requests:
+      cpu: 2000m
+      memory: 4Gi
+      ephemeral-storage: "2Gi"
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 60
+
+  defaultPodDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  # for pod Affinity and podAntiAffinity
+  extraLabels: {}
+    #acLabel: acValue
+
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+
+  topologySpreadConstraints: []
+  tolerations: []
+  extraSecrets: []
+  extraConfigMaps: []
+  #If myFG is hosted on HTTP Server adapter on AC server, provide the internal port/protocol details used while configuring that.
+  myFgAccess:
+    myFgPort:
+    myFgProtocol:
+
+  hostAliases: []
+  performanceTuning:
+    allocateMemToSAP: false
+
+  networkPolicies:
+    ingress:
+      customPolicies:
+    egress:
+      customPolicies:
+
+api:
+  replicaCount: 1
+  env:
+    #It will be deprecated in future release. Instead use config/jvm.options file to override or add any additional jvm configuration.
+    jvmOptions:
+    #Refer to global env.extraEnvs for sample values
+    extraEnvs: []
+
+  frontendService:
+    type: ClusterIP
+    ports:
+      http:
+        name: http
+        port: 35005
+        targetPort: http
+        nodePort: 30005
+        protocol: TCP
+      https:
+        name: https
+        port: 35006
+        targetPort: https
+        nodePort: 30006
+        protocol: TCP
+    extraPorts: []
+    loadBalancerIP:
+    annotations: {}
+
+  livenessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 60
+
+  readinessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 60
+    command:
+    arg: []
+
+  internalAccess:
+    enableHttps: true
+    tlsSecretName:
+
+  externalAccess:
+    protocol: http
+    address:
+    port:
+
+  ingress:
+    internal:
+      host: "ibm.com"
+      tls:
+        enabled: true
+        secretName:
+
+  extraPVCs: []
+  extraInitContainers: []
+
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+      ephemeral-storage: "4Gi"
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+      ephemeral-storage: "2Gi"
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 2
+    targetCPUUtilizationPercentage: 60
+
+  defaultPodDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  # for pod Affinity and podAntiAffinity
+  extraLabels: {}
+    #apiLabel: apiValue
+
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
+
+  topologySpreadConstraints: []
+  tolerations: []
+  extraSecrets: []
+  extraConfigMaps: []
+
+  hostAliases: []
+
+  networkPolicies:
+    ingress:
+      customPolicies:
+    egress:
+      customPolicies:
+nameOverride: ""
+
+fullnameOverride: ""
+
+# Test container
+test:
+  image:
+    repository: 'cp.icr.io/cp'
+    name: 'opencontent-common-utils'
+    tag: '1.1.54'
+    digest: sha256:9bfcc7b58d503c45097dae5d35577b45bb8ffb56e8f9244e8cd3574dd36daf4c
+    pullPolicy: 'IfNotPresent'
+
+purge:
+  enabled: true
+  image:
+    repository: "cp.icr.io/cp/ibm-b2bi/b2bi-purge"
+  # Provide the tag value in double quotes
+    tag: "6.1.2.1"
+    digest: sha256:b3a8b080fb9640796879105d9c6544a0630a4d2a0e3dc65cc84ac690e9522ba5
+    pullPolicy: IfNotPresent
+    pullSecret: "ibm-pull-secret"
+  # Provide a schedule for the purge job as a cron expression. For example "0 0 * * *" will run the purge job at 00:00 every day
+  schedule: "0 0 * * *"
+  startingDeadlineSeconds: 60
+  activeDeadlineSeconds: 3600
+  concurrencyPolicy: Forbid
+  suspend: false
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+  env:
+    jvmOptions:
+    #Refer to global env.extraEnvs for sample values
+    extraEnvs: []
+
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 500m
+      memory: 1Gi
+      ephemeral-storage: "1Gi"
+    requests:
+      cpu: 100m
+      memory: 500Mi
+      ephemeral-storage: "500Mi"
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution: []
+    preferredDuringSchedulingIgnoredDuringExecution: []
 ```
 
 ```
-
-Create our secrets
-
-`b2b-db-secret.yaml`
-```
-apiVersion: v1
-kind: Secret
-metadata:
-  name: b2b-db-secret
-type: Opaque
-stringData:
-  DB_USER: oracleuser
-  DB_PASSWORD: oraclepass
+helm install sterling-b2bi -f sterling-b2bi-values.yaml /path/to/ibm-b2bi-prod --timeout 3600s --namespace sterling
 ```
 
-```
-kubectl apply -f b2b-db-secret.yaml
-```
-
-
+Installation should take approximately 40 minutes
 
 ## Security
 :construction:
