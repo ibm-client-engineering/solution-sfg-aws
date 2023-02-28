@@ -27,6 +27,8 @@
       - [**Configure Oracle RDS Instance**](#configure-oracle-rds-instance)
       - [Images and Internal Registry](#images-and-internal-registry)
     - [Installation](#installation)
+      - [Secrets](#secrets)
+      - [Sidecar Deployment](#sidecar-deployment)
   - [Security](#security)
   - [Testing](#testing)
 - [Architecture Decisions](#architecture-decisions)
@@ -1162,6 +1164,8 @@ kubectl apply -f nginx-deploy.yaml
 
 ### Installation
 
+#### Secrets
+
 Create the following secrets in the `sterling` namespace
 
 `sterling-secrets.yaml`
@@ -1198,6 +1202,8 @@ Apply the secrets.
 ```
 kubectl apply -f sterling-secrets.yaml -n sterling
 ```
+
+#### Sidecar deployment
 
 Create a sidecar pod and storage volume to stage the files required to deploy.
 
@@ -1304,7 +1310,8 @@ should be changed to our Server Version
 kubeVersion: '>=v1.23.14-eks-ffeb93d'
 ```
 
-Create a sterling override file similar to this one:
+Create a sterling override file similar to this one: 
+This is valid for installing the Sterling B2BI product. If using SFG, 
 
 `sterling-overrides-b2bi.yaml`
 ```
