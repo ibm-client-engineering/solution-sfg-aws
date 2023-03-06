@@ -1320,6 +1320,22 @@ If using Sterling SFG
 
 [sterling-overrides-sfg.yaml](overrides/sterling-sfg-values.yaml)
 
+If you need to add custom labeling for the pods, look for this section under each application definition in the overrides file:
+
+```
+  # for pod Affinity and podAntiAffinity
+  extraLabels: {}
+    #acLabel: acValue
+```
+
+Add the labels that would be applied to each pod
+
+```
+  # for pod Affinity and podAntiAffinity
+  extraLabels:
+    customlabelname: customlabelvalue 
+```
+
 Run the helm installation with the following command
 
 ```
