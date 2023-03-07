@@ -1,0 +1,183 @@
+# (C) Copyright 2019-2022 Syncsort Incorporated. All rights reserved.
+
+
+{{- include "sch.config.init" (list . "b2bi.sch.chart.config.values") }}
+{{- include "validateInput" . -}}
+{{- if .Values.dataSetup.enabled }}
+{{- $ibmsecretexist := (empty (lookup "v1" "Secret" .Release.Namespace .sch.chart.components.ibmDefaultPullSecret.name)) | ternary "false" "true"  }}
+{{- $resourcesPVCName := .sch.chart.components.appResourcesPVC.name }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.dbSetup.name) | quote }}
+    annotations:
+        # This is what defines this resource as a hook. Without this line, the
+        # job is considered part of the release.
+        "helm.sh/hook": "pre-install, pre-upgrade"
+        "helm.sh/hook-weight": "2"
+        "helm.sh/hook-delete-policy": "hook-succeeded,before-hook-creation"
+    labels:
+{{ include "sch.metadata.labels.standard" (list . .sch.chart.components.dbSetup.name) | indent 8 }}
+spec:
+    backoffLimit: 1
+    template:
+        metadata:
+            name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.dbSetup.name) | quote }}
+            labels:
+{{ include "sch.metadata.labels.standard" (list . .sch.chart.components.dbSetup.name) | indent 14 }}
+            annotations:
+{{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "db-setup") | indent 14 }}
+        spec:
+            serviceAccountName: {{ .Values.serviceAccount.name  | quote }}
+            hostNetwork: false
+            hostPID: false
+            hostIPC: false
+            securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 14 }}
+            volumes:                
+                {{- if .Values.appResourcesPVC.enabled }} 
+                - name: "{{ .sch.chart.components.appResourcesPVC.name }}"
+                {{- if .Values.persistence.enabled }}
+                  persistentVolumeClaim:
+                    claimName: {{ (empty .Values.appResourcesPVC.preDefinedResourcePVCName) | ternary (include "sch.names.fullCompName" (list . $resourcesPVCName) | quote) (.Values.appResourcesPVC.preDefinedResourcePVCName | quote) }}
+                {{- else }}
+                  emptyDir: {}
+                {{- end }}
+                {{- end }}
+                - name: configmap-resources-volume
+                  configMap:
+                    name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.configmap.name) | quote }}
+                {{- if and (.Values.setupCfg.usessl) (.Values.setupCfg.dbTruststoreSecret) }}
+                - name: secret-{{ .Values.setupCfg.dbTruststoreSecret }}
+                  secret:
+                    secretName: {{ .Values.setupCfg.dbTruststoreSecret }}
+                {{- end }}
+                {{- if and (.Values.setupCfg.usessl) (.Values.setupCfg.dbKeystoreSecret) }}
+                - name: secret-{{ .Values.setupCfg.dbKeystoreSecret }}
+                  secret:
+                    secretName: {{ .Values.setupCfg.dbKeystoreSecret }}
+                {{- end }}
+                {{- if and (.Values.setupCfg.jmsEnableSsl) (.Values.setupCfg.jmsTruststoreSecret) }}
+                - name: secret-{{ .Values.setupCfg.jmsTruststoreSecret }}
+                  secret:
+                    secretName: {{ .Values.setupCfg.jmsTruststoreSecret }}
+                {{- end }}
+                {{- if and (.Values.setupCfg.jmsEnableSsl) (.Values.setupCfg.jmsKeystoreSecret) }}
+                - name: secret-{{ .Values.setupCfg.jmsKeystoreSecret }}
+                  secret:
+                    secretName: {{ .Values.setupCfg.jmsKeystoreSecret }}
+                {{- end }}
+                {{- if .Values.resourcesInit.enabled}}
+                - name: resourcesdir
+                  emptyDir: {}
+                {{- end }}
+            {{- if or (.Values.dataSetup.image.pullSecret) (.Values.global.image.pullSecret) (eq $ibmsecretexist "true") }}
+            imagePullSecrets:
+            {{- if .Values.dataSetup.image.pullSecret }}
+              - name: {{ .Values.dataSetup.image.pullSecret }}
+            {{- else if .Values.global.image.pullSecret}}
+              - name: {{ .Values.global.image.pullSecret }}
+            {{- else }}
+              - name: "{{ .sch.chart.components.ibmDefaultPullSecret.name }}"
+            {{- end }}
+            {{- end }}
+            containers:
+                - name: "db-setup"
+                  resources:
+                {{- toYaml .Values.asi.resources | nindent 20 }}
+                  {{- if .Values.dataSetup.image.digest }}
+                  image: "{{ .Values.dataSetup.image.repository }}@{{ .Values.dataSetup.image.digest }}"
+                  {{- else }}
+                  image: "{{ .Values.dataSetup.image.repository }}:{{ .Values.dataSetup.image.tag }}"
+                  {{- end }}
+                  imagePullPolicy: {{ .Values.dataSetup.image.pullPolicy }}
+                  env:
+                    - name: "TZ"
+                      value: "{{ .Values.env.tz }}"
+                    {{- if .Values.global.license }}
+                    - name: "LICENSE"
+                      value: "accept"
+                    {{- end }}
+                    - name: "UPGRADE_COMPATIBILITY_VERIFIED"
+                      value: "{{ .Values.env.upgradeCompatibilityVerified }}"
+                    - name: "SANDBOX_CC_INSTALL"
+                      value: "true"
+                    - name: "SANDBOX_CC_SERVICE_TYPE"
+                      value: "dbjob"
+                    {{- with .Values.env.extraEnvs }}
+                    {{- toYaml . | nindent 20 }}
+                    {{- end }}                                     
+                  envFrom:
+{{if .Values.setupCfg.systemPassphraseSecret}}
+                  - secretRef:
+                        name: "{{ .Values.setupCfg.systemPassphraseSecret }}"
+{{ end }}
+{{if .Values.setupCfg.dbSecret}}
+                  - secretRef:
+                        name: "{{ .Values.setupCfg.dbSecret }}"
+{{ end }}
+{{if .Values.setupCfg.jmsSecret}}
+                  - secretRef:
+                        name: "{{ .Values.setupCfg.jmsSecret }}"
+{{ end }}
+{{if .Values.setupCfg.libertySecret}}
+                  - secretRef:
+                        name: "{{ .Values.setupCfg.libertySecret }}"
+{{ end }}
+                  securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 20 }}
+                  volumeMounts:
+                    {{- if .Values.appResourcesPVC.enabled }} 
+                    - name: {{ .sch.chart.components.appResourcesPVC.name }}
+                      mountPath: /ibm/resources
+                    {{- end }}
+                    - name: configmap-resources-volume
+                      mountPath: /ibm/resources/setup.cfg
+                      subPath: setup.cfg
+                    {{- if and (.Values.setupCfg.usessl) (.Values.setupCfg.dbTruststoreSecret) }}
+                    - name: secret-{{ .Values.setupCfg.dbTruststoreSecret }}
+                      mountPath: /ibm/resources/{{ .Values.setupCfg.dbTruststoreSecret }}
+                    {{- end }}
+                    {{- if and (.Values.setupCfg.usessl) (.Values.setupCfg.dbKeystoreSecret) }}
+                    - name: secret-{{ .Values.setupCfg.dbKeystoreSecret }}
+                      mountPath: /ibm/resources/{{ .Values.setupCfg.dbKeystoreSecret }}
+                    {{- end }}
+                    {{- if and (.Values.setupCfg.jmsEnableSsl) (.Values.setupCfg.jmsTruststoreSecret) }}
+                    - name: secret-{{ .Values.setupCfg.jmsTruststoreSecret }}
+                      mountPath: /ibm/resources/{{ .Values.setupCfg.jmsTruststoreSecret }}
+                    {{- end }}
+                    {{- if and (.Values.setupCfg.jmsEnableSsl) (.Values.setupCfg.jmsKeystoreSecret) }}
+                    - name: secret-{{ .Values.setupCfg.jmsKeystoreSecret }}
+                      mountPath: /ibm/resources/{{ .Values.setupCfg.jmsKeystoreSecret }}
+                    {{- end }}                    
+                    {{- if .Values.resourcesInit.enabled}}
+                    - name: resourcesdir
+                      mountPath: /ibm/resources
+                    {{- end }}
+                  args: ["b2bi_setup", "deploy_db"]
+            restartPolicy: Never
+            affinity:
+{{- include "b2bi.architectureAffinity" . | indent 14 }}
+            {{- if .Values.resourcesInit.enabled}}
+            initContainers:
+            - name: "resources-init"
+              {{- if .Values.resourcesInit.image.digest }}
+              image: "{{ .Values.resourcesInit.image.repository }}/{{ .Values.resourcesInit.image.name }}@{{ .Values.resourcesInit.image.digest }}"
+              {{- else }}
+              image: "{{ .Values.resourcesInit.image.repository }}/{{ .Values.resourcesInit.image.name }}:{{ .Values.resourcesInit.image.tag }}"
+              {{- end }}
+              imagePullPolicy: "{{ .Values.resourcesInit.image.pullPolicy }}"
+              command: 
+              {{- toYaml .Values.resourcesInit.command | nindent 16 }}
+              securityContext:
+              {{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 16 }}
+              env:
+                - name: "DB_VENDOR"
+                  value: "{{ .Values.setupCfg.dbVendor }}"
+                - name: "RESOURCES_DIR_MOUNT"
+                  value: {{ .Values.resourcesInit.mountPath | default "/ibm/resources" | quote }}
+              volumeMounts:
+              - name: resourcesdir
+                mountPath: {{ .Values.resourcesInit.mountPath | default "/ibm/resources" }}
+            {{- end }}
+{{- end }}

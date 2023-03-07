@@ -1,0 +1,64 @@
+{{- if ( or (.Values.setupCfg.libertyJvmOptions) (.Values.api.env.jvmOptions)) -}}
+----------------------------------------------------------------------------------------------------------------
+Below jvm specific configuration options for liberty(api) from values.yaml will be deprecated in future release. 
+{{- if .Values.setupCfg.libertyJvmOptions }}
+	.Values.setupCfg.libertyJvmOptions
+{{- end }}
+{{- if .Values.api.env.jvmOptions }}
+	.Values.api.env.jvmOptions
+{{- end }}
+Instead use config/jvm.options file to override or add any additional jvm configuration.
+----------------------------------------------------------------------------------------------------------------
+{{- end }}
+{{- if (.Values.setupCfg.restartCluster) -}}
+----------------------------------------------------------------------------------------------------------------
+The application is being deployed with .Values.setupCfg.restartCluster set to true. It will restart the application 
+cluster by cleaning up all previous node entries, locks and set the schedules to node1.
+
+You should reset .Values.setupCfg.restartCluster to false until the cluster needs to be restarted again.
+----------------------------------------------------------------------------------------------------------------
+{{- end }}
+Please wait while the application is getting deployed.
+1. Run the below command to check the status of application server replica sets. At least 1 replica must be in 'READY' state. 
+  kubectl get replicasets -l release={{ .Release.Name }} -n {{ .Release.Namespace }}
+
+2. Run the below command to check the status of the application server pods for the release.
+  kubectl get pods -l release={{ .Release.Name }} -n {{ .Release.Namespace }} -o wide
+
+    To view the logs for a pod, run the below command.
+  kubectl logs <pod name> -n {{ .Release.Namespace }}
+
+3. Access the application by running the following url
+
+{{- if .Values.ingress.enabled }}
+{{- if .Values.asi.ingress.host }}
+{{- if .Values.asi.ingress.tls.enabled }}
+  echo "dashboard: https://{{ .Values.asi.ingress.host }}/dashboard"
+{{- else }}
+  echo "dashboard: http://{{ .Values.asi.ingress.host }}/dashboard"
+  echo "Warning: It is recommended to enable SSL"
+{{- end }}  
+{{- end }} 
+{{- end }}
+
+{{- if contains "NodePort" .Values.asi.frontendService.type }}
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[1].nodePort}" services {{ template "b2bi.fullname" . }})
+  echo "dashboard: https://$NODE_IP:$NODE_PORT/dashboard"
+  echo "filegateway : https://$NODE_IP:$NODE_PORT/filegateway"
+{{- end }}
+
+----------------------------------------------------------------------------------------------------------------
+Below app defined PVC name configuration will be deprecated in future release
+
+{{- if not ( eq .sch.chart.components.appResourcesPVC.name "resources" ) }}
+.Values.appResourcesPVC.name is deprecated. The application will create the pvc with system defined name.
+{{- end }}
+
+{{- if not ( eq .sch.chart.components.appLogsPVC.name "logs" ) }}
+.Values.appLogsPVC.name is deprecated. The application will create the pvc with system defined name.
+{{- end }}
+
+{{- if not ( eq .sch.chart.components.appDocumentsPVC.name "documents" ) }}
+.Values.appDocumentsPVC.name is deprecated. The application will create the pvc with system defined name.
+{{- end }}
