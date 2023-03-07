@@ -1,0 +1,47 @@
+# (C) Copyright 2019-2022 Syncsort Incorporated. All rights reserved.
+
+{{- include "sch.config.init" (list . "b2bi.sch.chart.config.values") -}}
+
+{{- $logsPVCName := .sch.chart.components.appLogsPVC.name}}
+
+{{- $name :=include "sch.names.fullCompName" (list . $logsPVCName) -}}
+{{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace $name)) | ternary "false" "true"  }}
+{{ if and (.Values.persistence.enabled) (empty .Values.appLogsPVC.preDefinedLogsPVCName) (eq $resourceexist "false") }}
+
+{{- if not .Values.logs.enableAppLogOnConsole }}
+# create a persistance volume claim for logs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "sch.names.fullCompName" (list . $logsPVCName) | quote }}
+  annotations:
+        # This is what defines this resource as a hook. Without this line, the
+        # job is considered part of the release.
+        "helm.sh/hook": "pre-install, pre-upgrade"
+        "helm.sh/hook-weight": "1"
+        "helm.sh/hook-delete-policy": "before-hook-creation"
+  labels:
+{{ include "sch.metadata.labels.standard" (list . $logsPVCName) | indent 4 }}
+spec:
+  {{- if .Values.persistence.useDynamicProvisioning }}
+  # if present, use the storageClassName from the values.yaml, else use the
+  # default storageClass setup by kube Administrator
+  # setting storageClassName to nil means use the default storage class
+  storageClassName: {{ default nil .Values.appLogsPVC.storageClassName | quote }}
+  {{- else }}
+  # bind to an existing pv.
+  # setting storageClassName to "" disables dynamic provisioning 
+  storageClassName: {{ default "" .Values.appLogsPVC.storageClassName | quote }}
+  {{- if and (.Values.appLogsPVC.selector) (.Values.appLogsPVC.selector.label) }}
+  # use selectors in the binding process
+  selector:
+    matchExpressions:
+      - {key: {{ .Values.appLogsPVC.selector.label }}, operator: In, values: [{{ .Values.appLogsPVC.selector.value }}]}
+  {{- end }}      
+  {{- end }}
+  accessModes: [ {{ .Values.appLogsPVC.accessMode | quote }} ]
+  resources:
+    requests:
+      storage: {{ .Values.appLogsPVC.size | quote }}
+{{- end }}
+{{- end }}

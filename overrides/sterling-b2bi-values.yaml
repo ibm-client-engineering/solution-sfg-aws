@@ -607,6 +607,9 @@ test:
     tag: '1.1.54'
     digest: sha256:9bfcc7b58d503c45097dae5d35577b45bb8ffb56e8f9244e8cd3574dd36daf4c
     pullPolicy: 'IfNotPresent'
+    pullSecret: ibm-pull-secret
+    extraLabels:
+      applicationid: testlabel
 
 purge:
   enabled: true
@@ -616,7 +619,9 @@ purge:
     tag: "6.1.2.1"
     digest: sha256:b3a8b080fb9640796879105d9c6544a0630a4d2a0e3dc65cc84ac690e9522ba5
     pullPolicy: IfNotPresent
-    pullSecret: "ibm-pull-secret"
+    pullSecret: ibm-pull-secret
+    extraLabels:
+      applicationid: testlabel
   # Provide a schedule for the purge job as a cron expression. For example "0 0 * * *" will run the purge job at 00:00 every day
   schedule: "0 0 * * *"
   startingDeadlineSeconds: 60
