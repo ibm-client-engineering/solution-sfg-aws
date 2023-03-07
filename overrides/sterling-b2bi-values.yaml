@@ -14,6 +14,11 @@ global:
       enabled: true
       customPolicies:
 
+# metadata:
+#  labels: 
+#    applicationid: testid
+#  annotations: {}
+
 # Specify architecture (amd64, ppc64le, s390x) and weight to be  used for scheduling as follows : 
 # #   0 - Do not use
 # #   1 - Least preferred
@@ -323,8 +328,9 @@ asi:
     minAvailable: 1
   
   # for pod Affinity and podAntiAffinity
-  extraLabels: {}
-    #asiLabel: asiValue
+  extraLabels:
+     applicationid: testlabel
+#    asiLabel: applicationid
   
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution: []
