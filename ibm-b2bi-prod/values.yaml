@@ -1056,6 +1056,8 @@ test:
     tag: '1.1.54'
     digest: sha256:9bfcc7b58d503c45097dae5d35577b45bb8ffb56e8f9244e8cd3574dd36daf4c
     pullPolicy: 'IfNotPresent'
+    pullSecret: 
+    extraLabels: {}
 
 purge:
   enabled: true
