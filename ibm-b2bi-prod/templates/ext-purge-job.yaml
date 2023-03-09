@@ -38,6 +38,10 @@ spec:
           hostNetwork: false
           hostPID: false
           hostIPC: false
+          {{- if .Values.purge.image.pullSecret }}
+          imagePullSecret:
+            - name: {{ .Values.purge.image.pullSecret }}
+          {{- end }}
           securityContext:
 {{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 12 }}
           volumes:
@@ -85,16 +89,6 @@ spec:
             - name: resourcesdir
               emptyDir: {}
             {{- end }}
-          {{- if or (.Values.purge.image.pullSecret) (.Values.global.image.pullSecret) (eq $ibmsecretexist "true") }}
-          imagePullSecret:
-          {{- if .Values.purge.image.pullSecret }}
-            - name: {{ .Values.purge.image.pullSecret }}
-          {{- else if .Values.global.image.pullSecret }}
-            - name: {{ .Values.global.image.pullSecret }}
-          {{- else }}
-            - name: "{{ .sch.chart.components.ibmDefaultPullSecret.name }}"
-          {{- end }}
-          {{- end }}
           {{- if .Values.resourcesInit.enabled}}
           initContainers:
           - name: "resources-init"
