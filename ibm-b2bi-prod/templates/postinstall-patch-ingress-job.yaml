@@ -45,7 +45,7 @@ spec:
         {{- end }}
         imagePullPolicy:  "{{ .Values.test.image.pullPolicy }}"
         {{- if .Values.test.image.pullSecret }}
-        imagePullSecrets:
+        imagePullSecret:
           - name: {{ .Values.test.image.pullSecret }}
         {{- end }}
         

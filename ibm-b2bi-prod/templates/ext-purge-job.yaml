@@ -86,7 +86,7 @@ spec:
               emptyDir: {}
             {{- end }}
           {{- if or (.Values.purge.image.pullSecret) (.Values.global.image.pullSecret) (eq $ibmsecretexist "true") }}
-          imagePullSecrets:
+          imagePullSecret:
           {{- if .Values.purge.image.pullSecret }}
             - name: {{ .Values.purge.image.pullSecret }}
           {{- else if .Values.global.image.pullSecret }}
