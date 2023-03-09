@@ -37,7 +37,7 @@ spec:
       hostPID: false
       hostIPC: false
       {{- if .Values.test.image.pullSecret }}
-      imagePullSecret:
+      imagePullSecrets:
       - name: {{ .Values.test.image.pullSecret }}
       {{- end }}
       securityContext:
