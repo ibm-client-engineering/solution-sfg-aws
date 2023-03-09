@@ -32,6 +32,10 @@ spec:
       hostNetwork: false
       hostPID: false
       hostIPC: false
+      {{- if .Values.test.image.pullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.test.image.pullSecret }}
+      {{- end }}
       securityContext:
 {{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 8 }}
       containers:
@@ -42,10 +46,6 @@ spec:
         image:  "{{ .Values.test.image.repository }}/{{ .Values.test.image.name }}:{{ .Values.test.image.tag }}"
         {{- end }}
         imagePullPolicy:  "{{ .Values.test.image.pullPolicy }}"
-        {{- if .Values.test.image.pullSecret }}
-        imagePullSecrets:
-        - name: {{ .Values.test.image.pullSecret }}
-        {{- end }}
         securityContext:
 {{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 10 }}
         command:
