@@ -99,6 +99,9 @@ dataSetup:
     digest: sha256:d90c1f4a0d74a69fb00aa52a55540a5780d2d6d48867b41f31a647fea3be1f46
     pullPolicy: IfNotPresent
     pullSecret: "ibm-pull-secret"
+    extraLabels:
+      applicationid: testlabel
+
 
 env:
   tz: "UTC"
