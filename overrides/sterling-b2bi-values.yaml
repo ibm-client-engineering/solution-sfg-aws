@@ -91,7 +91,7 @@ ingress:
 
 dataSetup:
 # Enabled must be set to true on a first install, but subsequent helm upgrades it needs to be set to false
-  enabled: true
+  enabled: false
   upgrade: false
   image:
     repository: "cp.icr.io/cp/ibm-b2bi/b2bi-dbsetup"
@@ -230,12 +230,12 @@ asi:
         targetPort: soassl
         nodePort: 30003
         protocol: TCP
-      restHttpAdapter: 
-        name: rest-adapter
-        port: 35007
-        targetPort: rest-adapter
-        nodePort: 30007
-        protocol: TCP            
+#      restHttpAdapter: 
+#        name: rest-adapter
+#        port: 35007
+#        targetPort: rest-adapter
+#        nodePort: 30007
+#        protocol: TCP            
     extraPorts: []
     loadBalancerIP:  
     annotations: {}  
@@ -250,9 +250,12 @@ asi:
         protocol: TCP
     portRanges:
       - name: adapters
-        portRange: 30301-30400
-        targetPortRange: 30301-30400
-        nodePortRange: 30301-30400
+#        portRange: 30301-30400
+#        targetPortRange: 30301-30400
+#        nodePortRange: 30301-30400
+        portRange: 30301-30305
+        targetPortRange: 30301-30305
+        nodePortRange: 30301-30305
         protocol: TCP
     loadBalancerIP:  
     annotations: {}
@@ -393,12 +396,12 @@ ac:
         targetPort: 30401
         nodePort: 30401
         protocol: TCP
-    portRanges:
-      - name: adapters
-        portRange: 30501-30600
-        targetPortRange: 30501-30600
-        nodePortRange: 30501-30600
-        protocol: TCP
+    portRanges: []
+#      - name: adapters
+#        portRange: 30501-30600
+#        targetPortRange: 30501-30600
+#        nodePortRange: 30501-30600
+#        protocol: TCP
     loadBalancerIP:  
     annotations: {} 
 
