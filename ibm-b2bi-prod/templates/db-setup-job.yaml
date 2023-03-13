@@ -28,6 +28,9 @@ spec:
             name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.dbSetup.name) | quote }}
             labels:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.dbSetup.name) | indent 14 }}
+{{- if .Values.dataSetup.image.extraLabels }}
+{{ toYaml .Values.dataSetup.image.extraLabels | indent 14 }}
+{{- end }}
             annotations:
 {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "db-setup") | indent 14 }}
         spec:
