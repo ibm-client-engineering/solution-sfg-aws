@@ -18,7 +18,7 @@ metadata:
         "helm.sh/hook-delete-policy": "hook-succeeded,before-hook-creation"
     labels:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.dbSetup.name) | indent 8 }}
-- if .Values.dataSetup.image.extraLabels }}
+{{- if .Values.dataSetup.image.extraLabels }}
 {{ toYaml .Values.dataSetup.image.extraLabels | indent 8 }}
 {{- end }}
 spec:
