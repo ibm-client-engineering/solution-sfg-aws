@@ -91,7 +91,7 @@ ingress:
 
 dataSetup:
 # Enabled must be set to true on a first install, but subsequent helm upgrades it needs to be set to false
-  enabled: false
+  enabled: true
   upgrade: false
   image:
     repository: "cp.icr.io/cp/ibm-b2bi/b2bi-dbsetup"
