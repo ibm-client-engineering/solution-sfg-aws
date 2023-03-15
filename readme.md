@@ -1336,6 +1336,44 @@ Add the labels that would be applied to each pod
     customlabelname: customlabelvalue 
 ```
 
+Host entries for each ingress should match what your existing domain is if you don't have a dedicated FQDN. This means you should set a wildcard.
+
+In our example, we are on AWS so our ingress host entries look like the following in the overrides document:
+
+```
+  ingress:
+    internal:
+      host: "*.elb.us-east-1.amazonaws.com"
+      tls:
+        enabled: true
+        secretName: sterling-b2bi-b2bi-ac-frontend-svc
+      extraPaths: []
+    external:
+      host: "*.elb.us-east-1.amazonaws.com" 
+      tls:
+        enabled: true
+        secretName: sterling-b2bi-b2bi-ac-frontend-svc
+      extraPaths: []
+```
+
+#### TLS SecretNames for ingress
+
+When the tls option is enabled for each app container, the secretName is created by the creattls job that is run at the beginning of the installation. So that secret can be applied in advance to the overrides:
+
+```
+ac.ingress.external.tls.enabled = true
+
+ac.ingress.external.tls.secretName = sterling-b2bi-b2bi-ac-frontend-svc
+
+asi.ingress.external.tls.enabled = true
+
+asi.ingress.external.tls.secretName = sterling-b2bi-b2bi-asi-frontend-svc
+
+api.ingress.external.tls.enabled = true
+
+api.ingress.external.tls.secretName = sterling-b2bi-b2bi-asi-frontend-svc
+```
+
 Run the helm installation with the following command
 
 ```
