@@ -13,6 +13,17 @@ global:
     egress:
       enabled: true
       customPolicies:
+      - name: allow-egress-to-rds
+        fromSelectors:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: b2bi
+              release: sterling-b2bi
+#        - ipBlock:
+#            cidr: 192.168.99.219/32
+        ports:
+          - protocol: TCP
+            port: 1521
 
 # metadata:
 #  labels: 
@@ -85,13 +96,13 @@ security:
 
 ingress:
   enabled: true
-  controller: "nginx"
+  controller: nginx
   annotations: {}
   port:
 
 dataSetup:
 # Enabled must be set to true on a first install, but subsequent helm upgrades it needs to be set to false
-  enabled: true
+  enabled: false
   upgrade: false
   image:
     repository: "cp.icr.io/cp/ibm-b2bi/b2bi-dbsetup"
@@ -295,16 +306,16 @@ asi:
     
   ingress:
     internal:
-      host: "ibm.com"
+      host: "*.elb.us-east-1.amazonaws.com"
       tls:
         enabled: true
-#        secretName: 
+        secretName: sterling-b2bi-b2bi-asi-frontend-svc
       extraPaths: []
     external:
-      host: "ibm.com" 
+      host: "*.elb.us-east-1.amazonaws.com" 
       tls:
         enabled: true
-        secretName: 
+        secretName: sterling-b2bi-b2bi-asi-frontend-svc
       extraPaths: []
 
   extraPVCs: []
@@ -426,16 +437,16 @@ ac:
       
   ingress:
     internal:
-      host: "ibm.com"
+      host: "*.elb.us-east-1.amazonaws.com"
       tls:
         enabled: true
-        secretName:
+        secretName: sterling-b2bi-b2bi-ac-frontend-svc
       extraPaths: []
     external:
-      host: "ibm.com" 
+      host: "*.elb.us-east-1.amazonaws.com" 
       tls:
         enabled: true
-        secretName: 
+        secretName: sterling-b2bi-b2bi-ac-frontend-svc
       extraPaths: []
   
   extraPVCs: []
@@ -543,10 +554,10 @@ api:
 
   ingress:
     internal:
-      host: "ibm.com"
+      host: "*.elb.us-east-1.amazonaws.com"
       tls:
         enabled: true
-        secretName:
+        secretName: sterling-b2bi-b2bi-api-frontend-svc
 
   extraPVCs: []
   extraInitContainers: []
