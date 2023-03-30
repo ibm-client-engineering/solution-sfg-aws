@@ -29,6 +29,7 @@
     - [Installation](#installation)
       - [Secrets](#secrets)
       - [Sidecar Deployment](#sidecar-deployment)
+    - [Validation](#application-validation)
   - [Security](#security)
   - [Testing](#testing)
 - [Architecture Decisions](#architecture-decisions)
@@ -1377,7 +1378,10 @@ helm install sterling-b2bi -f sterling-b2bi-values.yaml /path/to/ibm-b2bi-prod -
 
 Installation should take approximately 40 minutes
 
-### Sterling Users:
+
+### Application Validation
+
+## Default Sterling Users:
 
 | Role | User ID | Password |
 |------|---------|----------|
@@ -1386,7 +1390,6 @@ Installation should take approximately 40 minutes
 | Route Provisioner |	fg_provisioner | password |
 | Operator | fg_operator | password |
 
-### Application Validation
 
 Relevant URL:
 https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=overview-sterling-file-gateway-tutorial
