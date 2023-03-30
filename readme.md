@@ -1472,7 +1472,6 @@ Select Routes > Templates > Create to create a routing channel template with the
 |<img src="images/Template_Groups.png" alt= “Groups” width="300">|<img src="images/Template_Provisioning_Facts.png" alt=“Facts” width="300">|
 |<img src="images/Template_Producer_File_Structure.png" alt=“ProducerFileStructure” width="300">|<img src="images/Template_Consumer_File_Structure_add.png" alt=“Type” width="300">|
 |<img src="images/Template_Consumer_File_Structure_format.png" alt=“Type” width="300">|<img src="images/Template_Consumer_File_Structure_Save.png" alt=“Type” width="300">
-<image>
 
 Save the template
 
