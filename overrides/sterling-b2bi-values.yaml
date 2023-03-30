@@ -14,13 +14,13 @@ global:
       enabled: true
       customPolicies:
       - name: allow-egress-to-rds
-        fromSelectors:
+        toSelectors:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: b2bi
               release: sterling-b2bi
-#        - ipBlock:
-#            cidr: 192.168.99.219/32
+        - ipBlock:
+            cidr: 192.168.99.219/32
         ports:
           - protocol: TCP
             port: 1521
