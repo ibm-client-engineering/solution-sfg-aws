@@ -1466,22 +1466,47 @@ Log out and log back into the `filegateway` as `fg_architect`
 
 Select Routes > Templates > Create to create a routing channel template with the following values:
 
-<img src="images/Template_Type.png" alt= “Type” width="300">
-
-<img src="images/Template_Special_Characters.png" alt= “Type” width="300">
-
-<img src="images/Template_Groups.png" alt= “Type” width="300">
-
-<img src="images/Template_Provisioning_Facts.png" alt= “Type” width="300">
-
-<img src="images/Template_Producer_File_Structure.png" alt= “Type” width="300">
-
-<img src="images/Template_Consumer_File_Structure_add.png" alt= “Type” width="300">
-
-<img src="images/Template_Consumer_File_Structure_format.png" alt= “Type” width="300">
-
-<img src="images/Template_Consumer_File_Structure_Save.png" alt= “Type” width="300">
+| | |
+|---|---|
+|<img src="images/Template_Type.png" alt= “Type” width="300">|<img src="images/Template_Special_Characters.png" alt= “Type” width="300">|
+|<img src="images/Template_Groups.png" alt= “Groups” width="300">|<img src="images/Template_Provisioning_Facts.png" alt=“Facts” width="300">|
+|<img src="images/Template_Producer_File_Structure.png" alt=“ProducerFileStructure” width="300">|<img src="images/Template_Consumer_File_Structure_add.png" alt=“Type” width="300">|
+|<img src="images/Template_Consumer_File_Structure_format.png" alt=“Type” width="300">|<img src="images/Template_Consumer_File_Structure_Save.png" alt=“Type” width="300">
 <image>
+
+Save the template
+
+Log out and log back into `filegateway` as `fg_provisioner`
+
+Create a routing channel with the following values:
+
+|Field|Value|
+|-----|-----|
+|Routing Channel Template|FirstStatic|
+|Producer|Partner2|
+|Consumer|Partner1|
+|User ID|User1|
+
+Log out of the UI and log in to the `myFileGateway` ui as `partner2`. You will probably need to change the password on first login.
+
+https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaws.com/myfilegateway
+
+Upload a text file to the `/` mailbox and then log out.
+
+Log in to `myfilegateway` as `partner1`. You will probably need to change the password on first login.
+
+Click the `Download File` tab and see if the file is there. Since Partner1 is the consumer and Partner2 is the sender, the file should show up there.
+
+Click on the file and download. Verify the file is downloaded and matches the naming convention we set.
+
+Log out and log back in to `filegateway` as `fg_operator`. If the default `password` password does not work for him, you might need to log back into the dashboard as `fg_sysadmin` and manually set `fg_operator`'s password. Then you will be required to change it when you log in to the `filegateway`
+
+Search for the file that was uploaded. We called it `readme.txt` in this example.
+
+<img src="images/File_Search.png" alt=“FileSearch” width="300">
+
+<img src="images/File_Search2.png" alt="FileStats" width="300">
+
 
 ## Security
 :construction:
