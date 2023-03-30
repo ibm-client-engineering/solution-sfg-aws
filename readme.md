@@ -1502,9 +1502,9 @@ Log out and log back in to `filegateway` as `fg_operator`. If the default `passw
 
 Search for the file that was uploaded. We called it `readme.txt` in this example.
 
-<img src="images/File_Search.png" alt=“FileSearch” width="300">
+<img src="images/File_Search.png" alt=“” width="300">
 
-<img src="images/File_Search2.png" alt="FileStats" width="300">
+<img src="images/File_Search2.png" alt="" width="300">
 
 
 ## Security
