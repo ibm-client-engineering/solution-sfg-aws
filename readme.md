@@ -29,6 +29,7 @@
     - [Installation](#installation)
       - [Secrets](#secrets)
       - [Sidecar Deployment](#sidecar-deployment)
+    - [Validation](#application-validation)
   - [Security](#security)
   - [Testing](#testing)
 - [Architecture Decisions](#architecture-decisions)
@@ -608,7 +609,7 @@ kubectl apply -f custom-podsecpolicy.yaml
 ```
 helm repo add ibm-helm https://raw.githubusercontent.com/IBM/charts/master/repo/ibm-helm
 
-helm repo add mq-helm-eks https://ibm-client-engineering.github.io/mq-helm-eks/
+helm repo add ibm-messaging-mq https://ibm-messaging.github.io/mq-helm
 ```
 
 
@@ -720,17 +721,12 @@ route:
       path: /ibmmq
       tls:
         enable: false
-    mqtraffic:
-      enable: false
-      hostname:
-      path:
-      tls:
-        enable: false
 ```
 Install IBM MQ with the following command
 
 ```
-helm install sterlingmq mq-helm-eks/ibm-mq -f sterling_values.yaml \
+helm install sterlingmq ibm-messaging-mq/ibm-mq \
+-f sterling_values.yaml \
 --set "queueManager.envVariables[0].name=MQ_ADMIN_PASSWORD" \
 --set "queueManager.envVariables[0].value=mqpasswd" \
 --set "queueManager.envVariables[1].name=MQ_APP_PASSWORD" \
@@ -1381,6 +1377,138 @@ helm install sterling-b2bi -f sterling-b2bi-values.yaml /path/to/ibm-b2bi-prod -
 ```
 
 Installation should take approximately 40 minutes
+
+
+### Application Validation
+
+## Default Sterling Users:
+
+| Role | User ID | Password |
+|------|---------|----------|
+| System Administrator | fg_sysadmin | password |
+| Integration Architect | fg_architect | password |
+| Route Provisioner |	fg_provisioner | password |
+| Operator | fg_operator | password |
+
+
+Relevant URL:
+https://www.ibm.com/docs/en/b2b-integrator/6.1.2?topic=overview-sterling-file-gateway-tutorial
+
+#### Configuring communication adapters:
+
+The following adapters can be used with Sterling File Gateway:
+
+| Protocol | Adapter | 
+|----------|---------|
+| FTP, FTPS | FTP Server adapter |
+| FTP, FTPS |	FTP Client adapter and services |
+| SSH/SFTP, SSH/SCP |	SFTP Server adapter |
+| SSH/SFTP |	SFTP Client adapter and services |
+| Sterling Connect:Direct |	Connect:Direct Server adapter |
+| PGP |	Command Line Adapter 2 |
+| HTTP, HTTPS, WebDAV (Requires extensibility. See Add Custom Protocols.) |	HTTP Server adapter |
+| HTTP, HTTPS, WebDAV (Requires extensibility. See Add Custom Protocols.) |	HTTP Client adapter and services |
+| WebSphere® MQ File Transfer Edition |	WebSphere MQ File Transfer Edition Agent adapter<br> WebSphere MQ Suite Async adapter<br> WebSphere MQ File Transfer Edition Create Transfer service <br> FTP Server Adapter |
+
+
+Primary URL can be found with the following command:
+```
+kubectl get ingress sterling-b2bi-b2bi-ingress -o jsonpath="{..hostname}"
+
+k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaws.com
+```
+Login to the dashboard as `fg_sysadmin`:
+
+https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaws.com/dashboard
+
+From the main menu: 
+1. Select Deployment > Services > Configuration.
+2. Select and configure the adapters you require.
+
+As an example, let's configure SFTP. Per the above table, SFTP is `SFTP Client adapter`
+
+Log out of dashboard and log back into the `filegateway` as `fg_architect`:
+
+https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaws.com/filegateway
+
+From the main menu, select **Participants > Communities** to create a community with the following values:
+
+| Field | Value |
+|-------|-------|
+|Community Name |	FirstComm |
+|Partner Initiates Protocol Connection|	X |
+|Partner Listens for Protocol Connections |X |
+|SSH/SFTP | X |
+|Should Receive Notification|	Yes |
+
+Select **Participants > Groups** to create a group named `Group1`.
+
+Log out of `filegateway` and log back in as `fg_provisioner`
+
+Create two partners with the following values:
+Select **Participants > Partners** 
+
+|Field| Value For First Partner| Value For Second Partner|
+|-----|------|-----|
+|Community|FirstComm|FirstComm|
+|Partner Name|Partner1|Partner2|
+|Phone|333|444|
+|Email|y@x.com|x@y.com|
+|User Name|partner1|partner2|
+|Password|p@ssw0rd|p@ssw@rd|
+|Given Name|partner|partner|
+|Surname|1|2|
+|Partner Role| Is a consumer of data<br> - Initiates a connection|Is a producer of data|
+|Use SSH|Yes|Yes|
+|Use Authorized User Key|No|No|
+|PGP Settings|- No<br>- No|- No<br> - No|
+
+Associate the partners with Group1. Select Participants > Groups > Add Partner. Select the partners and the group, and click Execute
+
+Log out and log back into the `filegateway` as `fg_architect`
+
+Select Routes > Templates > Create to create a routing channel template with the following values:
+
+| | |
+|---|---|
+|<img src="images/Template_Type.png" alt= “Type” width="300">|<img src="images/Template_Special_Characters.png" alt= “Type” width="300">|
+|<img src="images/Template_Groups.png" alt= “Groups” width="300">|<img src="images/Template_Provisioning_Facts.png" alt=“Facts” width="300">|
+|<img src="images/Template_Producer_File_Structure.png" alt=“ProducerFileStructure” width="300">|<img src="images/Template_Consumer_File_Structure_add.png" alt=“Type” width="300">|
+|<img src="images/Template_Consumer_File_Structure_format.png" alt=“Type” width="300">|<img src="images/Template_Consumer_File_Structure_Save.png" alt=“Type” width="300">
+
+Save the template
+
+Log out and log back into `filegateway` as `fg_provisioner`
+
+Create a routing channel with the following values:
+
+|Field|Value|
+|-----|-----|
+|Routing Channel Template|FirstStatic|
+|Producer|Partner2|
+|Consumer|Partner1|
+|User ID|User1|
+
+Log out of the UI and log in to the `myFileGateway` ui as `partner2`. You will probably need to change the password on first login.
+
+https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaws.com/myfilegateway
+
+Upload a text file to the `/` mailbox and then log out.
+
+Log in to `myfilegateway` as `partner1`. You will probably need to change the password on first login.
+
+Click the `Download File` tab and see if the file is there. Since Partner1 is the consumer and Partner2 is the sender, the file should show up there.
+
+Click on the file and download. Verify the file is downloaded and matches the naming convention we set.
+
+Log out and log back in to `filegateway` as `fg_operator`. If the default `password` password does not work for him, you might need to log back into the dashboard as `fg_sysadmin` and manually set `fg_operator`'s password. Then you will be required to change it when you log in to the `filegateway`
+
+Search for the file that was uploaded. We called it `readme.txt` in this example.
+
+<img src="images/File_search.png" width="300">
+
+<img src="images/File_search2.png" width="300">
+
 
 ## Security
 :construction:
