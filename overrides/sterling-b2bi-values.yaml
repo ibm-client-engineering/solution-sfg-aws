@@ -402,7 +402,8 @@ ac:
       - name: sftp-frontend
         port: 50039
         targetPort: 50039
-        nodePort: 30510
+#        nodePort: 30510
+        nodePort: 50039
         protocol: TCP
     loadBalancerIP:  
     annotations: {}  
@@ -416,9 +417,11 @@ ac:
         nodePort: 30401
         protocol: TCP
       - name: sftp-backend
-        port: 30510
+#        port: 30510
+        port: 50039
         targetPort: 50039
-        nodePort: 30510
+#        nodePort: 30510
+        nodePort: 50039
         protocol: TCP
     portRanges:
       - name: adapters
