@@ -399,7 +399,7 @@ ac:
         nodePort: 30004
         protocol: TCP
     extraPorts:
-      - name: tcpsftp
+      - name: sftp-frontend
         port: 50039
         targetPort: 50039
         nodePort: 30510
@@ -415,7 +415,7 @@ ac:
         targetPort: 30401
         nodePort: 30401
         protocol: TCP
-      - name: sftp-adapter
+      - name: sftp-backend
         port: 30510
         targetPort: 50039
         nodePort: 30510
