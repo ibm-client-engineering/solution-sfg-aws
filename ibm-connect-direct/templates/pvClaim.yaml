@@ -1,0 +1,41 @@
+{{- if and .Values.persistence.enabled  (not .Values.pvClaim.existingClaimName) -}}
+{{- include "sch.config.init" (list . "ibm-connect-direct.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{  $fullName  }}-pvc
+  labels:
+    app.kubernetes.io/name: {{ $appName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "ibm-connect-direct.chart" . }}
+    release: {{ .Release.Name }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  {{- if .Values.persistence.useDynamicProvisioning }}
+  # If present, use the storageClassName from the values.yaml, else use the
+  # default storage class, setting nil means using default storage class
+  storageClassName: {{ default nil .Values.pvClaim.storageClassName | quote  }}
+  {{- else }}
+  # Disable dynamic provisioning
+  # PV already exists
+  storageClassName: {{ default "" .Values.pvClaim.storageClassName | quote }}
+  # using provided selectors if any for binding to existing PV
+  {{- if .Values.pvClaim.selector.label }}
+  selector:
+    matchExpressions:
+      - {key: {{ .Values.pvClaim.selector.label }}, operator: In, values: [{{ .Values.pvClaim.selector.value }}]}
+  {{- end }}
+  {{- end }}
+  accessModes:
+    - {{ .Values.pvClaim.accessMode | quote }} 
+  resources:
+    requests:
+      storage: {{  .Values.pvClaim.size | quote  }}
+{{- end }}

@@ -1,0 +1,268 @@
+{{- include "sch.config.init" (list . "ibm-connect-direct.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{  include "sch.names.statefulSetName" (list .) }}
+  labels:
+    app.kubernetes.io/name: {{  $appName  }}
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    app.kubernetes.io/managed-by: {{  .Release.Service  }}
+    helm.sh/chart: {{  include "ibm-connect-direct.chart" .  }}
+    release: {{  .Release.Name  }}
+    author: IBM
+  namespace: {{ .Release.Namespace }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{  .Values.replicaCount  }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{  $appName  }}
+      app.kubernetes.io/instance: {{  .Release.Name  }}
+      author: IBM
+  serviceName: {{ $fullName }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{  $appName  }}
+        app.kubernetes.io/instance: {{  .Release.Name  }}
+        app.kubernetes.io/managed-by: {{  .Release.Service  }}
+        helm.sh/chart: {{  include "ibm-connect-direct.chart" .  }}
+        release: {{  .Release.Name  }}
+        author: IBM
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 8 }}
+{{- end }}
+      annotations:
+        license: {{ include "ibm-connect-direct.licenseValidate" .  | required "Error: License must be accepted by setting license key to true. For license refer: http://www-03.ibm.com/software/sla/sladb.nsf (L/N:  L-MTAE-C5RR2U)" | quote }}
+{{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering "" "" nil) | indent 8 }}
+        checksum/config: {{ include (print $.Template.BasePath "/configMap.yaml") . | sha256sum }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ $saName }}
+      {{- else }} 
+      serviceAccountName: {{ .Values.serviceAccount.name | default "default" }}
+      {{- end }}
+      hostNetwork: false
+      hostPID: false
+      hostIPC: false
+      securityContext: 
+{{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 8 }}
+      affinity:
+{{- include "ibm-connect-direct.nodeAffinity" (list . .Values.affinity.nodeAffinity) | indent 8 }}
+{{- include "ibm-connect-direct.podAffinity" (list . .Values.affinity.podAffinity) | indent 8 }}
+{{- include "ibm-connect-direct.podAntiAffinity" (list . .Values.affinity.podAntiAffinity) | indent 8 }} 
+      containers:
+        - name: {{ $fullName }}
+          {{- if .Values.image.digest.enabled }}
+          image: "{{  .Values.image.repository  }}@{{ .Values.image.digest.value }}"
+          {{- else }}
+          image: "{{  .Values.image.repository  }}:{{ .Values.image.tag  }}"
+          {{- end }}
+          imagePullPolicy: {{  .Values.image.pullPolicy  }}
+          env:
+            - name: CD_License_Acceptance
+              value: {{  .Values.license | quote  }}
+            - name: TZ
+              value: {{  .Values.env.timezone  }}
+            # LDAP configuration
+            {{- if .Values.ldap.enabled  }}
+            - name: LDAP_ENABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: enabled
+            - name: LDAP_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: host
+            - name: LDAP_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: port
+            - name: LDAP_DOMAIN
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: domain
+            {{- if .Values.ldap.tls  }}
+            - name: LDAP_TLS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: tls
+            - name: LDAP_CACERT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: caCert
+            {{- if .Values.ldap.clientValidation  }}
+            - name: LDAP_ENABLE_CLNT_VAL
+              valueFrom:
+                configMapKeyRef: 
+                  name: {{ $fullName }}
+                  key: clientValidation
+            - name: LDAP_CLIENT_CERT
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: clientCert
+            - name: LDAP_CLIENT_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: clientKey
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            - name: SACL_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ $fullName }}
+                  key: saclConfig
+            - name: CPU_REQUEST
+              valueFrom:
+                resourceFieldRef:
+                  containerName: {{ $fullName }}
+                  resource: requests.cpu
+            - name: LICENSE_TYPE
+              value: {{  .Values.licenseType | quote  }}
+          ports:
+          # Map the configuration directory from inside the container to the
+          # persistent volume claims
+          volumeMounts:
+            - mountPath: /opt/cdunix/ndm/cfg
+              name: cd-vol
+              subPath: CFG
+            - mountPath: /opt/cdunix/work
+              name: cd-vol
+              subPath: WORK
+            - mountPath: /opt/cdunix/ndm/secure+
+              name: cd-vol
+              subPath: SECPLUS
+            - mountPath: /opt/cdunix/ndm/security
+              name: cd-vol
+              subPath: SECURITY
+            - mountPath: /opt/cdunix/process
+              name: cd-vol
+              subPath: PROCESS
+          # File agent support on container
+            - mountPath: /opt/cdunix/file_agent/config
+              name: cd-vol
+              subPath: FACONFIG
+            - mountPath: /opt/cdunix/file_agent/log
+              name: cd-vol
+              subPath: FALOG
+          # CD Configurations using dynamic or non-dynamic prov
+            - mountPath: /opt/cdfiles/cdcert
+              {{- if .Values.persistence.useDynamicProvisioning }} 
+              name: cd-cert-secret
+              readOnly: true
+              {{- else }}
+              name: cd-vol
+              subPath: CDFILES
+              {{- end }} 
+            - mountPath: /opt/cdfiles/cd_param_file
+              name: cd-param
+              subPath: cd_param_file
+              readOnly: true
+            - mountPath: /opt/cdfiles/secret_files
+              name: cd-secret
+              readOnly: true
+# Extra Volume Mounts
+{{- with .Values.extraVolumeMounts }}
+{{ toYaml . | indent 12 }}
+{{- end }}
+            - mountPath: /opt/backup
+              name: cd-vol
+              subPath: BACKUP
+
+          # Add the required linux capabilities
+          securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 12 }}
+
+          # Set startup probe to determine if Connect Direct has completed startup procedure
+          startupProbe:
+            initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds }}
+            failureThreshold: 5
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              {{- if .Values.cdArgs.cport }}
+              - /cdinstall/cdmonitor.sh {{ .Values.cdArgs.cport }}
+              {{- else }}
+              - /cdinstall/cdmonitor.sh 1363
+              {{- end }}
+          # Set liveness probe to determine if Connect Direct is running
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: 10
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              {{- if .Values.cdArgs.cport }}
+              - /cdinstall/cdmonitor.sh {{ .Values.cdArgs.cport }}
+              {{- else }}
+              - /cdinstall/cdmonitor.sh 1363
+              {{- end }}
+          # Set readiness probe to determine if Connect Direct is running
+          readinessProbe: 
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: 5
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              {{- if .Values.cdArgs.cport }}
+              - /cdinstall/cdmonitor.sh {{ .Values.cdArgs.cport }}
+              {{- else }}
+              - /cdinstall/cdmonitor.sh 1363
+              {{- end }}
+          resources:
+            limits:
+{{ toYaml .Values.resources.limits | indent 14 }}
+            requests:
+{{ toYaml .Values.resources.requests | indent 14 }}
+          
+      # Create a volume which will be used while creating the container.
+      # The volume claim needs to be created before using this volume.
+      volumes:
+      - name: cd-vol
+        persistentVolumeClaim:
+        {{- if .Values.pvClaim.existingClaimName }}
+          claimName: {{ .Values.pvClaim.existingClaimName }}
+        {{- else }}
+          claimName: {{  $fullName  }}-pvc
+        {{- end }}
+      - name: cd-param 
+        configMap:
+          name: {{ $fullName }}
+          defaultMode: 292
+      - name: cd-secret
+        secret: 
+          secretName: {{  .Values.secret.secretName  }}
+          defaultMode: 292
+      {{- if .Values.persistence.useDynamicProvisioning }}
+      - name: cd-cert-secret
+        secret:
+          secretName: {{  .Values.secret.certSecretName  }}
+          defaultMode: 292
+      {{- end }}
+# Extra Volumes
+{{- with .Values.extraVolume }}
+{{ toYaml . | indent 6 }}
+{{- end }}

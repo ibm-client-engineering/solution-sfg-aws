@@ -1,0 +1,15 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: cd-pv1
+  labels:
+    type: nfs
+spec:
+  storageClassName: "manual"
+  capacity:
+    storage: 100Mi  # Storage allocated to this PV
+  accessModes:
+    - ReadWriteOnce
+  #nfs:
+  #  server:
+  #  path: 

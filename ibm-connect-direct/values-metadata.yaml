@@ -1,0 +1,664 @@
+image:
+  __metadata:
+    label: "Image"
+    description: "Configuration settings for the container image"
+  repository:
+    __metadata:
+      label: "C:D Unix image repository"
+      description: "Registry to pull C:D Unix image"
+      type: "string"
+      immutable: false
+      required: true
+  tag:
+    __metadata:
+      label: "Image tag"
+      description: "A tag is label applied to each image in registry to distinguish it from other images in registry"
+      type: "string"
+      immutable: false
+      required: true
+  digest:
+    enabled:
+      __metadata:
+        name: "DigestEnabled"
+        label: "Digest Enablement"
+        description: "Enable/disable digest to be used for image"
+        type: "boolean"
+        immutable: false
+        required: true
+    value:
+      __metadata:
+        name: "Digestvalue"
+        label: "Digest hash value"
+        description: "Digest of the image to be used for deployment"
+        type: "string"
+        immutable: false
+        required: true
+  pullPolicy:
+    __metadata:
+      name: "pullPolicy"
+      label: "Image pull policy"
+      description: "Always, Never, or IfNotPresent. Defaults to Always"
+      type: "string"
+      immutable: false
+      required: true
+      options:
+      - label: "Always"
+        value: "Always"
+      - label: "Never"
+        value: "Never"
+      - label: "IfNotPresent"
+        value: "IfNotPresent"
+  imageSecrets:
+    __metadata:
+      label: "C:D Unix Image pull secret"
+      description: "Secret to use when pulling the image. Set this when using an image from a private registry"
+      type: "string"
+      required: true
+
+replicaCount:
+  __metadata:
+    label: "Replica Count"
+    description: "Replica count for deployment"
+    type: "string"
+    required: true
+
+arch:
+  __metadata:
+    name: "Architecture"
+    label: "Worker node architecture"
+    description: "Worker node architecture to deploy to. The helm chart will try to detect the architecture based on the master node"
+    type: "string"
+    required: false
+    options:
+      - label: "AMD64 platforms"
+        value: "amd64"
+
+extraVolumeMounts:
+  __metadata:
+    name: "Extra Volume Mounts"
+    label: "Extra volume mounts"
+    description: "Extra volume mounts for general purpose"
+    type: "string"
+    required: false
+
+extraVolume:
+  __metadata:
+    name: "Extra Volume"
+    label: "Extra volume"
+    description: "Extra volume for general purpose"
+    type: "string"
+    required: false
+
+## Connect Direct parameters
+cdArgs:
+  __metadata:
+    label: "C:D Arguments"
+    description: "Configuration settings for the arguments of startup script"
+  nodeName:
+    __metadata:
+      label: "Node name"
+      description: "Container node name"
+      type: "string"
+      immutable: false
+      required: true
+  crtName:
+    __metadata:
+      label: "Certificate name"
+      description: "Certifcate file name required for installing C:D Unix"
+      type: "string"
+      immutable: false
+      required: true
+  cport:
+    __metadata:
+      label: "Client Port"
+      description: "Client port for C:D Unix"
+      type: "string"
+      immutable: false
+      required: true
+  sport:
+    __metadata:
+      label: "Server Port"
+      description: "Server port for C:D Unix"
+      type: "string"
+      immutable: false
+      required: true
+  configDir:
+    __metadata:
+      label: "Configuration directory"
+      description: "Configuration directory required for storing config files"
+      type: "string"
+      immutable: false
+      required: true
+  saclConfig:
+    __metadata:
+      label: "SACL configuration"
+      description: "Configuration for SACL ACL"
+      type: "string"
+      immutable: false
+      required: true
+## Connect Direct parameters
+appUser:
+  __metadata:
+    label: "C:D Unix Non-Admin User"
+    description: "C:D Unix Non-Admin application user"
+  name:
+    __metadata:
+      label: "Username"
+      description: "C:D Unix Non-Admin username"
+      type: "string"
+      immutable: false
+      required: true
+  uid:
+    __metadata:
+      label: "User UID"
+      description: "C:D Unix Non-Admin user's UID"
+      type: "string"
+      immutable: false
+      required: false
+  gid:
+    __metadata:
+      label: "User GID"
+      description: "C:D Unix Non-Admin user's gid"
+      type: "string"
+      immutable: false
+      required: false
+#CD admin user params
+cduser:
+  __metadata:
+    label: "C:D Unix Admin User"
+    description: "C:D Unix Admin user"
+  uid:
+    __metadata:
+      label: "User UID"
+      description: "C:D Unix Admin user's UID"
+      type: "string"
+      immutable: false
+      required: false
+  gid:
+    __metadata:
+      label: "User GID"
+      description: "C:D Unix Admin user's gid"
+      type: "string"
+      immutable: false
+      required: false
+
+storageSecurity:
+  __metadata:
+    label: "Security parameters"
+    description: "Specify the security"
+  supplementalGroups:
+    __metadata:
+      label: "Supplemental GroupID"
+      description: "Supplemental group id for persistent volume"
+      type: "string"
+      immutable: false
+      required: false
+  fsGroup:
+    __metadata:
+      label: "File System GID"
+      description: "File system group id for persistent volume"
+      type: "number"
+      immutable: false
+      required: false
+
+## global persistence parameters
+persistence:
+  __metadata:
+    label: "Persistence"
+    description: "Configuration settings for Persistent Volumes"
+  enabled:
+    __metadata:
+      label: "Enable persistence"
+      description: "Select this checkbox to store Connect Direct Unix data and configuration on a Persistent Volume so that is preserved when pod goes down"
+      type: "boolean"
+      required: true
+  useDynamicProvisioning:
+    __metadata:
+      label: "Use dynamic provisioning"
+      description: "Select this checkbox to use Storage Classes to provision a Persisent Volume automatically"
+      type: "boolean"
+      required: true
+
+## global persistence vlomue claim parameters
+pvClaim:
+  __metadata:
+    label: "Persistence Volume Claim"
+    description: "Configuration settings for the main Persistent Volume Claim"
+  storageClassName:
+    __metadata:
+      label: "Storage Class name"
+      description: "Choose a specific storage class. Defaults to default storage class in the cluster"
+      type: "string"
+      immutable: false
+      required: false
+  selector: 
+    label:
+      __metadata: 
+        label: "Label"
+        description: "Key to match during PV bind"
+        type: "string"
+        immutable: false
+        required: false
+    value: 
+      __metadata:
+        label: "Value"
+        description: "key value to match during PV bind"
+        type: "string"
+        immutable: false
+        required: false
+  size:
+    __metadata:
+      label: "Size"
+      description: "Size of Persistent Volume Claim"
+      type: "string"
+      immutable: false
+      required: true
+  accessMode:
+    __metadata:
+      label: "Access Mode"
+      description: "Access Mode for Persistent Volume Claim"
+      type: "string"
+      immutable: false
+      required: true
+  existingClaimName:
+      label: "Access Mode"
+      description: "Access Mode for Persistent Volume Claim"
+      type: "string"
+      immutable: false
+      required: true
+
+## global service parameters
+service:
+  __metadata:
+    label: "Service"
+    description: "Configuration settings for exposing ports through a service"
+  type:
+    __metadata:
+      label: "Service type"
+      description: "Specify type of service"
+      type: "string"
+      immutable: false
+      required: true
+      options:
+      - label: "NodePort"
+        value: "NodePort"
+      - label: "ClusterIP"
+        value: "ClusterIP"
+      - label: "LoadBalancer"
+        value: "LoadBalancer"
+  apiport:
+    name: 
+      __metadata:
+        label: "API Port name"
+        description: "Name of the API Port. Defaults to api"
+        type: "string"
+        immutable: false
+        required: true
+    port:
+      __metadata:
+        label: "API Port number"
+        description: "Port number of API Port"
+        type: "string"
+        immutable: false
+        required: true
+    protocol:
+      __metadata:
+        label: "API Port protocol"
+        description: "Protocol name of the API Port. Defaults to TCP"
+        type: "string"
+        immutable: false
+        required: true
+  ftport:
+    name:
+      __metadata:
+        label: "FT Port name"
+        description: "Name of the FT Port. Dfaults to ft"
+        type: "string"
+        immutable: false
+        required: true
+    port:
+      __metadata:
+        label: "FT Port number"
+        description: "Port number of FT Port"
+        type: "string"
+        immutable: false
+        required: true
+    protocol:
+      __metadata:
+        label: "FT Port protocol"
+        description: "Protocol name of the FT Port. Defaults to TCP"
+        type: "string"
+        immutable: false
+        required: true
+  externalIP:
+    __metadata:
+      label: "External IP"
+      description: "External IP for service discovery"
+      type: "string"
+      immutable: false
+      required: false
+
+## global parameters
+license:
+  __metadata:
+    label: "License for IBM Certified Container Software for C:D Unix"
+    description: "Please read and accept the license agreement by setting this field as true"
+    type: "boolean"
+    immutable: false
+    required: true
+nameOverride:
+  __metadata:
+    label: "Name override"
+    description: "This name will be appended to release name to form the name of the resources created by this chart"
+    type: "string"
+    immutable: false
+    required: false
+licenseType:
+  __metadata:
+    label: "License edition for IBM Certified Container Software for C:D Unix"
+    description: "Please provide the license type edition as either prod or non-prod"
+    type: "string"
+    immutable: true
+    required: true
+env:
+  __metadata:
+    label: "Environmental Variables"
+    description: "Configure environmental variables"
+  timezone:
+    __metadata:
+      label: "Timezone"
+      description: "Specify the timezone of the chart where it is installed"
+      type: "string"
+      immutable: false
+      required: true
+
+dashboard:
+  __metadata:
+    label: "Dashboard Monitoring"
+    description: "Enable it to have a monitoring dasboard"
+  enabled:
+    __metadata:
+      label: "Dashboard Enabler"
+      description: "Dashboard enabling parameter"
+      immutable: false
+      required: false
+      type: "boolean"
+
+## Resource requests and limits configuration metadata
+resources:
+  __metadata:
+    label: "Resource configuration setting"
+    description: "Resources requirements for the chart"
+  requests:
+    cpu:
+      __metadata:
+        label: "CPU request"
+        description: "The minimum required CPU cores. Specify integers, fractions (e.g. 0.5), or millicore values(e.g. 100m, where 100m is equivalent to .1 core)"
+        type: "string"
+        required: true
+    memory:
+      __metadata:
+        label: "Memory request"
+        description: "The minimum memory in bytes. Specify integers with one of these suffixes: E, P, T, G, M, K, or power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki"
+        type: "string"
+        required: true
+  limits:
+    cpu:
+      __metadata:
+        label: "CPU limit"
+        description: "The upper limit of CPU core. Specify integers, fractions (e.g. 0.5), or millicores values(e.g. 100m, where 100m is equivalent to .1 core)"
+        type: "string"
+        required: true
+    memory:
+      __metadata:
+        label: "Memory limit"
+        description: "The memory upper limit in bytes. Specify integers with suffixes: E, P, T, G, M, K, or power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki"
+        type: "string"
+        required: true
+
+serviceAccount:
+  __metadata:
+    label: "Service Account"
+    description: "Service account to use"
+  create:
+    __metadata:
+      name: "createServiceAccount"
+      label: "Create Service Accout"
+      description: "Enable/disable service account creation"
+      type: "boolean"
+      required: true
+  name:
+    __metadata:
+      name: "serviceAccountName"
+      label: "Existing Service Accout name"
+      description: "If the user wishes to use own/already created service account, can specify the name here, default value is default"
+      type: "string"
+      required: false
+
+secret:
+  __metadata:
+    label: "C:D Unix Secret Config"
+    description: "C:D Unix Secret object for chart"
+  secretName: 
+    __metadata:
+      name: "secretName"
+      label: "C:D Unix Secret Name"
+      description: "The name of the secret for C:D Unix in the same namespace of release to be installed"
+      type: "string"
+      immutable: false
+      required: true
+  certSecretName:
+    __metadata:
+      name: "certSecretName"
+      label: "C:D Unix Certificate Secret Name"
+      description: "The name of the secret of certifcates files for C:D Unix secure plus configuration and LDAP configuration in the same namespace of release to be installed"
+      type: "string"
+      immutable: false
+      required: true
+
+affinity:
+  __metadata:
+    label: "Affinity"
+    description: "Affinity for deployment"
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      __metadata:
+        label: "Node Affinity RequiredDuringSchedulingIgnoredDuringExecution"
+        type: "string"
+        description: "Specify in accordance with k8s PodSpec.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution"
+        immutable: false
+        required: false
+    preferredDuringSchedulingIgnoredDuringExecution:
+      __metadata:
+        label: "Node Affinity PreferredDuringSchedulingIgnoredDuringExecution"
+        type: "string"
+        description: "Specify in accordance with k8s PodSpec.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution"
+        immutable: false
+        required: false
+  podAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      __metadata:
+        label: "Pod Affinity RequiredDuringSchedulingIgnoredDuringExecution"
+        type: "string"
+        description: "Specify in accordance with k8s PodSpec.podAffinity.requiredDuringSchedulingIgnoredDuringExecution"
+        immutable: false
+        required: false
+    preferredDuringSchedulingIgnoredDuringExecution:
+      __metadata:
+        label: "Pod Affinity PreferredDuringSchedulingIgnoredDuringExecution"
+        type: "string"
+        description: "Specify in accordance with k8s PodSpec.podAffinity.preferredDuringSchedulingIgnoredDuringExecution"
+        immutable: false
+        required: false
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      __metadata:
+        label: "Pod Anti-Affinity RequiredDuringSchedulingIgnoredDuringExecution"
+        type: "string"
+        description: "Specify in accordance with k8s PodSpec.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution"
+        immutable: false
+        required: false
+    preferredDuringSchedulingIgnoredDuringExecution:
+      __metadata:
+        label: "Pod Anti-Affinity PreferredDuringSchedulingIgnoredDuringExecution"
+        type: "string"
+        description: "Specify in accordance with k8s PodSpec.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution"
+        immutable: false
+        required: false
+
+startupProbe:
+  __metadata:
+    label: "startup probe"
+    description: "Startup Probe"
+  initialDelaySeconds:
+    __metadata:
+      label: "startupProbe"
+      type: "string"
+      description: "Specify initial delays in starting startup probe"
+      immutable: false
+      required: true
+  timeoutSeconds:
+    __metadata:
+      label: "timeoutSecond"
+      type: "string"
+      description: "Timeout for a probes"
+      immutable: false
+      required: true
+  periodSeconds:
+    __metadata:
+      label: "periodSecond"
+      type: "string"
+      description: "time period for two probes"
+      immutable: false
+      required: true
+
+livenessProbe:
+  __metadata:
+    label: "liveness probe"
+    description: "Liveness Probe"
+  initialDelaySeconds:
+    __metadata:
+      label: "livenessProbe"
+      type: "string"
+      description: "Specify initial delays in starting liveness probe"
+      immutable: false
+      required: true
+  timeoutSeconds:
+    __metadata:
+      label: "timeoutSecond"
+      type: "string"
+      description: "Timeout for a probes"
+      immutable: false
+      required: true
+  periodSeconds:
+    __metadata:
+      label: "periodSecond"
+      type: "string"
+      description: "time period for two probes"
+      immutable: false
+      required: true
+
+readinessProbe:
+  __metadata:
+    label: "readiness probe"
+    description: "Readiness Probe"
+  initialDelaySeconds:
+    __metadata:
+      label: "readinessProbe"
+      type: "string"
+      description: "Specify initial delays in starting readiness probe"
+      immutable: false
+      required: false
+  timeoutSeconds:
+    __metadata:
+      label: "timeoutSecond"
+      type: "string"
+      description: "Timeout for a probes"
+      immutable: false
+      required: true
+  periodSeconds:
+    __metadata:
+      label: "periodSecond"
+      type: "string"
+      description: "time period for two probes"
+      immutable: false
+      required: true
+route:
+  __metadata:
+    label: "openshiftRoute"
+    description: "Route for openshift"
+  enabled:
+    __metadata:
+      label: "routeEnabled"
+      type: "boolean"
+      description: "Specify true/false for openshift route"
+      immutable: false
+      required: true
+# LDAP support
+ldap:
+  __metadata:
+    label: "ldap support"
+    description: "LDAP support"
+  enabled:
+    __metadata:
+      label: "ldapEnabled"
+      type: "boolean"
+      description: "Specify true/false for LDAP configuration"
+      immutable: false
+      required: true
+  host:
+    __metadata:
+      label: "ldapHost"
+      type: "string"
+      description: "LDAP server host"
+      immutable: false
+      required: true
+  port:
+    __metadata:
+      label: "ldapPort"
+      type: "string"
+      description: "LDAP port"
+      immutable: false
+      required: true
+  domain:
+    __metadata:
+      label: "ldapDomain"
+      type: "string"
+      description: "LDAP Domain for top level domain to search"
+      immutable: false
+      required: true
+  tls: 
+    __metadata:
+      label: "ldapTlsEnabled"
+      type: "boolean"
+      description: "Specify true/false for LDAP TLS"
+      immutable: false
+      required: true
+  caCert:
+    __metadata:
+      label: "ldapCaCert"
+      type: "string"
+      description: "LDAP CA Certificate name"
+      immutable: false
+      required: true
+  clientValidation: 
+    __metadata:
+      label: "ldapClientValidation"
+      type: "boolean"
+      description: "Specify true/false for LDAP Client Validation"
+      immutable: false
+      required: true
+  clientCert:
+    __metadata:
+      label: "ldapClientCert"
+      type: "string"
+      description: "LDAP Client Certificate name"
+      immutable: false
+      required: true
+  clientKey:
+    __metadata:
+      label: "ldapClientKeyCert"
+      type: "string"
+      description: "LDAP Client Certificate key name"
+      immutable: false
+      required: true

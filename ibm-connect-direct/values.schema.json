@@ -1,0 +1,1086 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "http://example.com/example.json",
+    "type": "object",
+    "title": "IBM Certified Container Software for Connect:Direct for UNIX (C:D Unix) JSON schema",
+    "required": [
+        "license",
+        "image",
+        "cdArgs",
+        "persistence",
+        "pvClaim",
+        "service",
+        "secret",
+        "serviceAccount"
+    ],
+    "properties": {
+        "license": {
+            "$id": "#/properties/license",
+            "type": "boolean",
+            "title": "C:D Unix license acceptance",
+            "description": "Please accept license after reading it at http://www-03.ibm.com/software/sla/sladb.nsf (L/N:  L-MTAE-C5RR2U)",
+            "default": false
+        },
+        "licenseType": {
+            "$id": "#/properties/licenseType",
+            "type": "string",
+            "title": "License edition for IBM Certified Container Software for C:D Unix",
+            "description": "Please provide the license type edition as either prod or non-prod for production or non-production respectively.",
+            "default": "prod",
+            "examples": [
+                "prod",
+                "non-prod"
+            ]
+        },
+        "env": {
+            "$id": "#/properties/env",
+            "type": "object",
+            "title": "Environment Variables",
+            "default": {},
+            "properties": {
+                "timezone": {
+                    "$id": "#/properties/env/properties/timezone",
+                    "type": "string",
+                    "title": "Timezone",
+                    "description": "Specify the timezone of the chart where it will be installed",
+                    "default": "UTC"
+                }
+            },
+            "additionalProperties": true
+        },
+        "replicaCount": {
+            "$id": "#/properties/replicaCount",
+            "type": "integer",
+            "title": "Replica Count",
+            "description": "This configuration is not supported. The count will always remain 1",
+            "default": 1
+        },
+        "extraLabels": {
+            "$id": "#/properties/extraLabels",
+            "type": "object",
+            "title": "Extra Labels",
+            "description": "Specify extra labels for all resources",
+            "additionalProperties": true
+        },
+        "nameOverride": {
+            "$id": "#/properties/nameOverride",
+            "type": "string",
+            "title": "Name Override",
+            "description": "This name will be appended to release name to form the name of the resources created by this chart",
+            "default": ""
+        },
+        "arch": {
+            "$id": "#/properties/arch",
+            "type": "string",
+            "title": "Worker Node Architecture",
+            "description": "Specify the worker node architecture where deployment would be done. The helm chart will try to detect the architecture based on the master node",
+            "default": "amd64",
+            "examples": [
+                "amd64"
+            ]
+        },
+        "image": {
+            "$id": "#/properties/image",
+            "type": "object",
+            "title": "Container Image Configuration",
+            "default": {},
+            "required": [
+                "repository",
+                "tag",
+                "imageSecrets",
+                "pullPolicy"
+            ],
+            "properties": {
+                "repository": {
+                    "$id": "#/properties/image/properties/repository",
+                    "type": "string",
+                    "title": "C:D Unix Image Repository",
+                    "description": "Specify the container image registry with image name",
+                    "default": "cp.icr.io/cp/ibm-connectdirect/cdu6.2_certified_container_6.2.0.6",
+                    "examples": [
+                       "cp.icr.io/cp/ibm-connectdirect/cdu6.2_certified_container_6.2.0.6"
+                    ]
+                },
+                "tag": {
+                    "$id": "#/properties/image/properties/tag",
+                    "type": ["string", "integer"],
+                    "title": "Image Tag",
+                    "description": "Specify a valid image tag present on registry",
+                    "default": "6.2.0.6_ifix000",
+                    "examples": [
+                      "6.2.0.6_ifix000"
+                    ]
+                },
+                "imageSecrets": {
+                    "$id": "#/properties/image/properties/imageSecrets",
+                    "type": "string",
+                    "title": "Image Registry Secret",
+                    "description": "Specify the secret to use when pulling the image. Please provide this when using an image from a private registry",
+                    "default": ""
+                },
+                "pullPolicy": {
+                    "$id": "#/properties/image/properties/pullPolicy",
+                    "type": "string",
+                    "title": "Image Pull Policy",
+                    "description": "Specify the image pull policy for containers",
+                    "default": "IfNotPresent",
+                    "examples": [
+                        "IfNotPresent",
+                        "Always",
+                        "Never"
+                    ]
+                },
+                "digest": {
+                    "$id": "#/properties/image/properties/digest",
+                    "type": "object",
+                    "title": "Image Digest Details",
+                    "default": {},
+                    "required": [
+                        "enabled",
+                        "value"
+                    ],
+                    "properties": {
+                        "enabled": {
+                            "$id": "#/properties/image/properties/digest/properties/enabled",
+                            "type": "boolean",
+                            "title": "Digest Enablement",
+                            "description": "Enable/disable digest to be used for image pull from registry",
+                            "default": false
+                        },
+                        "value": {
+                            "$id": "#/properties/image/properties/digest/properties/value",
+                            "type": "string",
+                            "title": "Image Digest Value",
+                            "description": "Specify image digest values to be used for image pull during deployment",
+                            "default": "sha256:f27d9bd149c390d411df9446a4004407ec690c54357ce9576f1812a566bd6910",
+                            "examples": [
+                               "sha256:f27d9bd149c390d411df9446a4004407ec690c54357ce9576f1812a566bd6910"
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "extraVolumeMounts": {
+            "$id": "#/properties/extraVolumeMounts",
+            "type": "array",
+            "title": "Extra Volume Mounts",
+            "description": "Extra volume mounts for general purpose",
+            "default": [],
+            "items": {
+               "$id": "#/properties/extraVolumeMounts/items",
+               "additionalProperties": true
+            }
+        },
+        "extraVolume": {
+            "$id": "#/properties/extraVolume",
+            "type": "array",
+            "title": "Extra Volume Name",
+            "description": "Extra volume names for general purposes",
+            "default": [],
+            "items": {
+                "$id": "#/properties/extraVolume/items",
+                "additionalProperties": true
+            }
+        },
+        "cdArgs": {
+            "$id": "#/properties/cdArgs",
+            "type": "object",
+            "title": "C:D Unix Configuration ",
+            "required": [
+                "nodeName",
+                "crtName",
+                "cport",
+                "sport",
+                "configDir",
+                "saclConfig"
+            ],
+            "properties": {
+                "nodeName": {
+                    "$id": "#/properties/cdArgs/properties/nodeName",
+                    "type": "string",
+                    "title": "C:D Localnode Name",
+                    "description": "Specify the C:D localnode name by which this C:D node will known to other C:D nodes",
+                    "default": "cdnode",
+                    "examples": [
+                        "cdnode"
+                    ]
+                },
+                "crtName": {
+                    "$id": "#/properties/cdArgs/properties/crtName",
+                    "type": "string",
+                    "title": "Local Certificate File Name",
+                    "description": "Specify keycert file for C:D local node and client",
+                    "default": "",
+                    "examples": [
+                        ""
+                    ]
+                },
+                "localCertLabel": {
+                    "$id": "#/properties/cdArgs/properties/localCertLabel",
+                    "type": "string",
+                    "title": "Local Certificate Import Label",
+                    "description": "Specify certificate import label for Keystore DB",
+                    "default": "Client-API",
+                    "examples": [
+                        "Client-API"
+                    ]
+                },
+                "cport": {
+                    "$id": "#/properties/cdArgs/properties/cport",
+                    "type": "integer",
+                    "title": "API/CLI Port",
+                    "description": "Specify the API or Client port number",
+                    "default": 1363
+                },
+                "sport": {
+                    "$id": "#/properties/cdArgs/properties/sport",
+                    "type": "integer",
+                    "title": "Server Port",
+                    "description": "Specify the remote partner port or file transfer port number",
+                    "default": 1364
+                },
+                "configDir": {
+                    "$id": "#/properties/cdArgs/properties/configDir",
+                    "type": "string",
+                    "title": "Configuration Directory Name",
+                    "description": "Specify the directory name where configuration fies are kept on persistent volume mount path",
+                    "default": "CDFILES"
+                },
+                "saclConfig": {
+                    "$id": "#/properties/cdArgs/properties/saclConfig",
+                    "type": "string",
+                    "title": "SACL Configuration",
+                    "description": "Specify the possible value for sysacl.cfg file in SACL directory",
+                    "default": "n",
+                    "examples": [
+                        "n",
+                        "y",
+                        "d"
+                    ]
+                },
+                "trustedAddr": {
+                    "$id": "#/properties/cdArgs/properties/trustedAddr",
+                    "type": "array",
+                    "title": "C:D Port Check Ignore list",
+                    "description": "Specify the IPs in IPv4 or IPv6",
+                    "default": "",
+                    "items": {
+                      "type": "string"
+                    },
+                    "additionalItems": { "type": "string" }
+                } 
+            }
+        },
+        "appUser": {
+            "$id": "#/properties/appUser",
+            "type": "object",
+            "title": "Non-Admin C:D User",
+            "description": "This user will only be created if its password is configured in C:D secret which is passed to helm chart",
+            "properties": {
+                "name": {
+                    "$id": "#/properties/appUser/properties/name",
+                    "type": "string",
+                    "title": "Non-Admin C:D User name",
+                    "description": "Specify the name for non-admin C:D user",
+                    "default": "appuser"
+                },
+                "uid": {
+                    "$id": "#/properties/appUser/properties/uid",
+                    "type": ["integer", "null"],
+                    "title": "Non-Admin C:D User UID",
+                    "description": "Specify the UID for non-admin C:D user"
+                },
+                "gid": {
+                    "$id": "#/properties/appUser/properties/gid",
+                    "type": ["integer", "null"],
+                    "title": "Non-Admin C:D User GID",
+                    "description": "Specify the GID for non-admin C:D user"
+                }
+            }
+        },
+        "cduser": {
+            "$id": "#/properties/cduser",
+            "type": "object",
+            "title": "Admin C:D User",
+            "description": "The admin C:D user is automatically created with cduser as its name",
+            "required": [
+                "uid",
+                "gid"
+            ],
+            "properties": {
+                "uid": {
+                    "$id": "#/properties/cduser/properties/uid",
+                    "type": "integer",
+                    "title": "UID of cduser",
+                    "description": "Specify the UID for cduser",
+                    "default": 45678
+                },
+                "gid": {
+                    "$id": "#/properties/cduser/properties/gid",
+                    "type": "integer",
+                    "title": "GID of cduser",
+                    "description": "Specify the GID for cduser",
+                    "default": 45678
+                }
+            }
+        },
+        "storageSecurity": {
+            "$id": "#/properties/storageSecurity",
+            "type": "object",
+            "title": "Storage Security",
+            "properties": {
+                "fsGroup": {
+                    "$id": "#/properties/storageSecurity/properties/fsGroup",
+                    "type": "integer",
+                    "title": "File System GID",
+                    "description": "Specify the file system group ID for persistent volume",
+                    "default": 45678
+                },
+                "supplementalGroups": {
+                    "$id": "#/properties/storageSecurity/properties/supplementalGroups",
+                    "type": "array",
+                    "title": "The supplementalGroups schema",
+                    "description": "An explanation about the purpose of this instance.",
+                    "items": {
+                        "$id": "#/properties/storageSecurity/properties/supplementalGroups/items",
+                        "type": "integer",
+                        "additionalItems": true
+                    }
+                }
+            }
+        },
+        "persistence": {
+            "$id": "#/properties/persistence",
+            "type": "object",
+            "title": "Persistence Configuration",
+            "default": {},
+            "required": [
+                "enabled",
+                "useDynamicProvisioning"
+            ],
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/persistence/properties/enabled",
+                    "type": "boolean",
+                    "title": "Enable/Disable Persistence",
+                    "description": "This parameters governs if persistence storage is required or not. Currenty, disabling this parameter is not supported.",
+                    "default": true,
+                    "examples": [
+                        true,
+                        false
+                    ]
+                },
+                "useDynamicProvisioning": {
+                    "$id": "#/properties/persistence/properties/useDynamicProvisioning",
+                    "type": "boolean",
+                    "title": "Enable/Disable Dynamic Provisioning ",
+                    "description": "This paraemeters governs the enabling disabling of dynamic provising in container using storage class",
+                    "default": false,
+                    "examples": [
+                        false,
+                        true
+                    ]
+                }
+            }
+        },
+        "pvClaim": {
+            "$id": "#/properties/pvClaim",
+            "type": "object",
+            "title": "Persistent Volume Claim Configuration",
+            "default": {},
+            "required": [
+                "accessMode",
+                "size"
+            ],
+            "properties": {
+                "existingClaimName": {
+                    "$id": "#/properties/pvClaim/properties/existingClaimName",
+                    "type": "string",
+                    "title": "Existing Persistent Volume Claim",
+                    "description": "Specify the existing persistent Volume claim name to be used for data persistence",
+                    "default": ""
+                },
+                "storageClassName": {
+                    "$id": "#/properties/pvClaim/properties/storageClassName",
+                    "type": "string",
+                    "title": "Storage Class Name",
+                    "description": "Specify the Storage Class name for dynamic provisioning for data persistence.",
+                    "default": ""
+                },
+                "accessMode": {
+                    "$id": "#/properties/pvClaim/properties/accessMode",
+                    "type": "string",
+                    "title": "Access Mode for Persistent Volume Claim",
+                    "description": "Specify the access mode for data persistence. Currently, only ReadWriteOnce is supported.",
+                    "default": "ReadWriteOnce",
+                    "examples": [
+                        "ReadWriteOnce"
+                    ]
+                },
+                "selector": {
+                    "$id": "#/properties/pvClaim/properties/selector",
+                    "type": "object",
+                    "title": "Labels for Selector",
+                    "default": {},
+                    "required": [
+                        "label",
+                        "value"
+                    ],
+                    "properties": {
+                        "label": {
+                            "$id": "#/properties/pvClaim/properties/selector/properties/label",
+                            "type": "string",
+                            "title": "Label Name",
+                            "description": "Specify the label name for manually created persistent volume resource to be used for this deployment",
+                            "default": ""
+                        },
+                        "value": {
+                            "$id": "#/properties/pvClaim/properties/selector/properties/value",
+                            "type": "string",
+                            "title": "Label Value",
+                            "description": "Specify the label value for manually created persistent volume resource to be used for this deployment.",
+                            "default": ""
+                        }
+                    }
+                },
+                "size": {
+                    "$id": "#/properties/pvClaim/properties/size",
+                    "type": "string",
+                    "title": "Persistent Volume Claim Size",
+                    "description": "Specify the claim size to be used for this deployment. Please note that this is minimum requirement for deployment.",
+                    "default": "100Mi"
+                }
+            }
+        },
+        "service": {
+            "$id": "#/properties/service",
+            "type": "object",
+            "title": "Service Configuration",
+            "required": [
+                "type",
+                "apiport",
+                "ftport"
+            ],
+            "properties": {
+                "type": {
+                    "$id": "#/properties/service/properties/type",
+                    "type": "string",
+                    "title": "Service Type",
+                    "description": "Specify the service type to be used to expose the C:D Unix application",
+                    "default": "LoadBalancer",
+                    "examples": [
+                        "LoadBalancer",
+                        "NodePort",
+                        "ClusterIP"
+                    ]
+                },
+                "apiport": {
+                    "$id": "#/properties/service/properties/apiport",
+                    "type": "object",
+                    "title": "Client/API Port Configuration",
+                    "required": [
+                        "name",
+                        "protocol"
+                    ],
+                    "properties": {
+                        "name": {
+                            "$id": "#/properties/service/properties/apiport/properties/name",
+                            "type": "string",
+                            "title": "Port Name",
+                            "description": "Specify the name for the Client/API port.",
+                            "default": "api"
+                        },
+                        "port": {
+                            "$id": "#/properties/service/properties/apiport/properties/port",
+                            "type": ["integer", "string", "null"],
+                            "title": "Client/API Port",
+                            "description": "Specify the Client/API port number."
+                        },
+                        "protocol": {
+                            "$id": "#/properties/service/properties/apiport/properties/protocol",
+                            "type": "string",
+                            "title": "Protocol",
+                            "description": "Specify the protocol for communicationon the port.",
+                            "default": "TCP"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "ftport": {
+                    "$id": "#/properties/service/properties/ftport",
+                    "type": "object",
+                    "title": "Server/File Transfer Port Configuration",
+                    "required": [
+                        "name",
+                        "protocol"
+                    ],
+                    "properties": {
+                        "name": {
+                            "$id": "#/properties/service/properties/ftport/properties/name",
+                            "type": "string",
+                            "title": "Port Name",
+                            "description": "Specify the name for the Server/FT port name",
+                            "default": "ft"
+                        },
+                        "port": {
+                            "$id": "#/properties/service/properties/ftport/properties/port",
+                            "type": ["integer", "string", "null"],
+                            "title": "Server/FT Port",
+                            "description": "Specify the Server/FT port number"
+                        },
+                        "protocol": {
+                            "$id": "#/properties/service/properties/ftport/properties/protocol",
+                            "type": "string",
+                            "title": "Protocol",
+                            "description": "Specify the protocol for communicationon the port.",
+                            "default": "TCP"
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "externalIP": {
+                    "$id": "#/properties/service/properties/externalIP",
+                    "type": "array",
+                    "title": "ExternalIP for Service",
+                    "description": "Specify the External IP to access the C:D Unix application.",
+                    "default": "",
+                    "items": {
+                      "type": "string"
+                     },
+                    "additionalItems": { "type": "string" }
+                },
+                "loadBalancerIP": {
+                    "$id": "#/properties/service/properties/loadBalancerIP",
+                    "type": "string",
+                    "title": "Load Balancer IP",
+                    "description": "Specify a valid Load Balancer IP, if available to access the C:D Unix application.",
+                    "default": ""
+                },
+                "loadBalancerSourceRanges": {
+                    "$id": "#/properties/service/properties/loadBalancerSourceRanges",
+                    "type": "array",
+                    "title": "LoadBalancer IP ranges for Service",
+                    "description": "Specify the LoadBalancer IP ranges to access the C:D Unix application.",
+                    "default": "",
+                    "items": {
+                      "type": "string"
+                     },
+                    "additionalItems": { "type": "string" }
+                },
+                "annotations": {
+                    "$id": "#/properties/service/properties/annotations",
+                    "type": "object",
+                    "title": "Service Annotations",
+                    "description": "Specify the Service annotations if needed.",
+                    "default": {},
+                    "additionalProperties": true
+                },
+                "externalTrafficPolicy": {
+                    "$id": "#/properties/service/properties/externalTrafficPolicy",
+                    "type": "string",
+                    "title": "External Traffic Policy",
+                    "description": "Specify the external traffic policy if needed.",
+                    "default": ""
+                },
+                "sessionAffinity": {
+                    "$id": "#/properties/service/properties/sessionAffinity",
+                    "type": "string",
+                    "title": "Session Affinity",
+                    "description": "Specify the session affinity.",
+                    "default": ""
+                }
+            },
+            "additionalProperties": true
+        },
+        "networkPolicy": {
+            "$id": "#/properties/networkPolicy",
+            "type": "object",
+            "title": "Network Policy Configuration",
+            "properties": {
+                "from": {
+                    "$id": "#/properties/networkPolicy/properties/from",
+                    "type": "array",
+                    "title": "From Rules",
+                    "description": "Specify from rules for Ingress tracffic",
+                    "default": [],
+                    "items": {
+                       "$id": "#/properties/networkPolicy/properties/from/items",
+                       "additionalProperties": true
+                    }
+                }
+            },
+            "additionalProperties": true
+        },
+        "secret": {
+            "$id": "#/properties/secret",
+            "type": "object",
+            "title": "Secret Configuration",
+            "required": [
+                "secretName"
+            ],
+            "properties": {
+                "secretName": {
+                    "$id": "#/properties/secret/properties/secretName",
+                    "type": "string",
+                    "title": "C:D Unix Secret",
+                    "description": "Specify the secret name which is created as prerequisite for this deployment.",
+                    "default": ""
+                },
+                "certSecretName": {
+                    "$id": "#/properties/secret/properties/certSecretName",
+                    "type": "string",
+                    "title": "Certificate Secret Name",
+                    "description": "Specify the secure plus, LDAP, or any other certificates secret name.",
+                    "default": ""
+                }
+            },
+            "additionalProperties": false
+        },
+        "serviceAccount": {
+            "$id": "#/properties/serviceAccount",
+            "type": "object",
+            "title": "Service Account Configuration",
+            "required": [
+                "create"
+            ],
+            "properties": {
+                "create": {
+                    "$id": "#/properties/serviceAccount/properties/create",
+                    "type": "boolean",
+                    "title": "Service Account Create",
+                    "description": "Specify true/false to create or not create a service account",
+                    "default": true,
+                    "examples": [
+                        true,
+                        false
+                    ]
+                },
+                "name": {
+                    "$id": "#/properties/serviceAccount/properties/name",
+                    "type": "string",
+                    "title": "Service Account Name",
+                    "description": "Specify service account name if existing service account is to be use for this deployment.",
+                    "default": ""
+                }
+            },
+            "additionalProperties": false
+        },
+        "resources": {
+            "$id": "#/properties/resources",
+            "type": "object",
+            "title": "Resource Configuration",
+            "properties": {
+                "limits": {
+                    "$id": "#/properties/resources/properties/limits",
+                    "type": "object",
+                    "title": "Resource Limits",
+                    "properties": {
+                        "cpu": {
+                            "$id": "#/properties/resources/properties/limits/properties/cpu",
+                            "type": "string",
+                            "title": "CPU Limit",
+                            "description": "The upper limit of CPU core. Specify integers, fractions (e.g. 0.5), or millicores values(e.g. 100m, where 100m is equivalent to .1 core)",
+                            "default": "500m"
+                        },
+                        "memory": {
+                            "$id": "#/properties/resources/properties/limits/properties/memory",
+                            "type": "string",
+                            "title": "Memory Limit",
+                            "description": "The memory upper limit in bytes. Specify integers with suffixes: E, P, T, G, M, K, or power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki",
+                            "default": "2000Mi"
+                        },
+                        "ephemeral-storage": {
+                            "$id": "#/properties/resources/properties/limits/properties/ephemeral-storage",
+                            "type": "string",
+                            "title": "Ephemeral Storage limit",
+                            "description": "The memory upper limit in bytes. Specify integers with suffixes: E, P, T, G, M, K, or power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki",
+                            "default": "5Gi"
+                         }
+                    },
+                    "additionalProperties": false
+                },
+                "requests": {
+                    "$id": "#/properties/resources/properties/requests",
+                    "type": "object",
+                    "title": "Resource Requests",
+                    "properties": {
+                        "cpu": {
+                            "$id": "#/properties/resources/properties/requests/properties/cpu",
+                            "type": "string",
+                            "title": "CPU Request",
+                            "description": "The minimum required CPU cores. Specify integers, fractions (e.g. 0.5), or millicore values(e.g. 100m, where 100m is equivalent to .1 core)",
+                            "default": "500m"
+                        },
+                        "memory": {
+                            "$id": "#/properties/resources/properties/requests/properties/memory",
+                            "type": "string",
+                            "title": "Memory Request",
+                            "description": "The minimum memory in bytes. Specify integers with one of these suffixes: E, P, T, G, M, K, or power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki",
+                            "default": "2000Mi"
+                        },
+                        "ephemeral-storage": {
+                            "$id": "#/properties/resources/properties/requests/properties/ephemeral-storage",
+                            "type": "string",
+                            "title": "Ephemeral-storage request",
+                            "description": "The minimum required ephemeral memory in bytes. Specify integers with suffixes: E, P, T, G, M, K, or power-of-two equivalents: Ei, Pi, Ti, Gi, Mi, Ki",
+                            "default": "3Gi"
+                         }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "dashboard": {
+            "$id": "#/properties/dashboard",
+            "type": "object",
+            "title": "Dashboard Monitoring",
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/dashboard/properties/enabled",
+                    "type": "boolean",
+                    "title": "Enable/Disable Dashboard",
+                    "description": "Enable/Disable dashboard monitoring",
+                    "default": false,
+                    "examples": [
+                        false,
+                        true
+                    ]
+                }
+            }
+        },
+        "affinity": {
+            "$id": "#/properties/affinity",
+            "type": "object",
+            "title": "Affinity Configuration",
+            "required": [
+                "nodeAffinity"
+            ],
+            "properties": {
+                "nodeAffinity": {
+                    "$id": "#/properties/affinity/properties/nodeAffinity",
+                    "type": "object",
+                    "title": "Node Affinity",
+                    "default": {},
+                    "required": [
+                        "requiredDuringSchedulingIgnoredDuringExecution",
+                        "preferredDuringSchedulingIgnoredDuringExecution"
+                    ],
+                    "properties": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/nodeAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution",
+                            "type": ["object", "null"],
+                            "title": "Node Affinity RequiredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution",
+                            "additionalProperties": true
+                        }, 
+                        "preferredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/nodeAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution",
+                            "type": ["array", "null"],
+                            "title": "Node Affinity PreferredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.nodeAffinity.preferredDuringSchedulingIgnoredDuringExecution",
+                            "items": {
+                                "$id": "#/properties/affinity/properties/nodeAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution/items",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "podAffinity": {
+                    "$id": "#/properties/affinity/properties/podAffinity",
+                    "type": "object",
+                    "title": "Pod Affinity",
+                    "default": {},
+                    "properties": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution",
+                            "type": ["array", "null"],
+                            "title": "Pod Affinity RequiredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAffinity.requiredDuringSchedulingIgnoredDuringExecution",
+                            "items": {
+                                "id": "#/properties/affinity/properties/podAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution/items",
+                                "additionalProperties": true
+                            }
+                        },
+                        "preferredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution",
+                            "type": ["array", "null"],
+                            "title": "Pod Affinity PreferredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAffinity.preferredDuringSchedulingIgnoredDuringExecution",
+                            "items": {
+                                "id": "#/properties/affinity/properties/podAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution/items",
+                                "additionalProperties": true
+                            }
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "podAntiAffinity": {
+                    "$id": "#/properties/affinity/properties/podAntiAffinity",
+                    "type": "object",
+                    "title": "Pod Anti-Affinity",
+                    "default": {},
+                    "properties": {
+                        "requiredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAntiAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution",
+                            "type": ["array", "null"],
+                            "title": "Pod Anti-Affinity RequiredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution",
+                            "items": {
+                                "id": "#/properties/affinity/properties/podAntiAffinity/properties/requiredDuringSchedulingIgnoredDuringExecution/items",
+                                "additionalProperties": true
+                            }
+                        },
+                        "preferredDuringSchedulingIgnoredDuringExecution": {
+                            "$id": "#/properties/affinity/properties/podAntiAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution",
+                            "type": ["array", "null"],
+                            "title": "Pod Anti-Affinity PreferredDuringSchedulingIgnoredDuringExecution",
+                            "description": "Specify in accordance with k8s PodSpec.podAntiAffinity.preferredDuringSchedulingIgnoredDuringExecution",
+                            "items": {
+                                "id": "#/properties/affinity/properties/podAntiAffinity/properties/preferredDuringSchedulingIgnoredDuringExecution/items",
+                                "additionalProperties": true
+                            } 
+                        }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "startupProbe": {
+            "$id": "#/properties/startupProbe",
+            "type": "object",
+            "title": "Startup Probe Configuration",
+            "required": [
+                "initialDelaySeconds",
+                "timeoutSeconds",
+                "periodSeconds"
+            ],
+            "properties": {
+                "initialDelaySeconds": {
+                    "$id": "#/properties/startupProbe/properties/initialDelaySeconds",
+                    "type": "integer",
+                    "title": "Initial Delay",
+                    "description": "Specify the initial delay in starting startup probe in seconds",
+                    "default": 30
+                },
+                "timeoutSeconds": {
+                    "$id": "#/properties/startupProbe/properties/timeoutSeconds",
+                    "type": "integer",
+                    "title": "Timeout",
+                    "description": "Specify the probe timeout in seconds",
+                    "default": 5
+                },
+                "periodSeconds": {
+                    "$id": "#/properties/startupProbe/properties/periodSeconds",
+                    "type": "integer",
+                    "title": "Period",
+                    "description": "Specify the time period between two probes in seconds",
+                    "default": 10
+                }
+            },
+            "additionalProperties": false
+        },
+        "livenessProbe": {
+            "$id": "#/properties/livenessProbe",
+            "type": "object",
+            "title": "Liveness Probe Configuration",
+            "required": [
+                "initialDelaySeconds",
+                "timeoutSeconds",
+                "periodSeconds"
+            ],
+            "properties": {
+                "initialDelaySeconds": {
+                    "$id": "#/properties/livenessProbe/properties/initialDelaySeconds",
+                    "type": "integer",
+                    "title": "Initial Delay",
+                    "description": "Specify the initial delay in starting liveness probe in seconds",
+                    "default": 5
+                },
+                "timeoutSeconds": {
+                    "$id": "#/properties/livenessProbe/properties/timeoutSeconds",
+                    "type": "integer",
+                    "title": "Timeout",
+                    "description": "Specify the probe timeout in seconds",
+                    "default": 5
+                },
+                "periodSeconds": {
+                    "$id": "#/properties/livenessProbe/properties/periodSeconds",
+                    "type": "integer",
+                    "title": "Period",
+                    "description": "Specify the time period between two probes in seconds",
+                    "default": 10
+                }
+            },
+            "additionalProperties": false
+        },
+        "readinessProbe": {
+            "$id": "#/properties/readinessProbe",
+            "type": "object",
+            "title": "Readiness Probe Configuration",
+            "required": [
+                "initialDelaySeconds",
+                "timeoutSeconds",
+                "periodSeconds"
+            ],
+            "properties": {
+                "initialDelaySeconds": {
+                    "$id": "#/properties/readinessProbe/properties/initialDelaySeconds",
+                    "type": "integer",
+                    "title": "Initial Delay",
+                    "description": "Specify the initial delay in starting readiness probe in seconds",
+                    "default": 3
+                },
+                "timeoutSeconds": {
+                    "$id": "#/properties/readinessProbe/properties/timeoutSeconds",
+                    "type": "integer",
+                    "title": "Timeout",
+                    "description": "Specify the probe timeout in seconds",
+                    "default": 5
+                },
+                "periodSeconds": {
+                    "$id": "#/properties/readinessProbe/properties/periodSeconds",
+                    "type": "integer",
+                    "title": "Time Period",
+                    "description": "Specify the time period between two probes in seconds",
+                    "default": 10
+                }
+            },
+            "additionalProperties": false
+        },
+        "route": {
+            "$id": "#/properties/route",
+            "type": "object",
+            "title": "Openshift Route Configuration",
+            "required": [
+                "enabled"
+            ],
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/route/properties/enabled",
+                    "type": "boolean",
+                    "title": "Enable/Disable Openshift Route",
+                    "description": "Specify true/false to enable/disable Openshift route creation",
+                    "default": false,
+                    "examples": [
+                        false,
+                        true
+                    ]
+                }
+            },
+            "additionalProperties": false
+        },
+        "ldap": {
+            "$id": "#/properties/ldap",
+            "type": "object",
+            "title": "C:D Unix LDAP Configuration",
+            "required": [
+                "enabled"
+            ],
+            "properties": {
+                "enabled": {
+                    "$id": "#/properties/ldap/properties/enabled",
+                    "type": "boolean",
+                    "title": "Enable/Disable LDAP",
+                    "description": "Specify true/false for LDAP configuration",
+                    "default": false,
+                    "examples": [
+                        false,
+                        true
+                    ]
+                },
+                "host": {
+                    "$id": "#/properties/ldap/properties/host",
+                    "type": "string",
+                    "title": "LDAP Host",
+                    "description": "Specify LDAP server host, if LDAP is enabled",
+                    "default": ""
+                },
+                "port": {
+                    "$id": "#/properties/ldap/properties/port",
+                    "type": ["integer", "null"],
+                    "title": "LDAP Port",
+                    "description": "Specify the LDAP server port, if LDAP is enabled",
+                    "default": ""
+                },
+                "domain": {
+                    "$id": "#/properties/ldap/properties/domain",
+                    "type": "string",
+                    "title": "LDAP Domain",
+                    "description": "Specify LDAP domain for top level domain to search, if LDAP is enabled",
+                    "default": ""
+                },
+                "tls": {
+                    "$id": "#/properties/ldap/properties/tls",
+                    "type": "boolean",
+                    "title": "Enable/Disable TLS in LDAP",
+                    "description": "Specify true/false to enable/disable TLS in LDAP",
+                    "default": false,
+                    "examples": [
+                        false,
+                        true
+                    ]
+                },
+                "caCert": {
+                    "$id": "#/properties/ldap/properties/caCert",
+                    "type": "string",
+                    "title": "LDAP CA Certificate",
+                    "description": "Specify the LDAP CA certificate file name for TLS",
+                    "default": ""
+                },
+                "clientValidation": {
+                    "$id": "#/properties/ldap/properties/clientValidation",
+                    "type": "boolean",
+                    "title": "Enable/Disable Client Validation",
+                    "description": "",
+                    "default": false,
+                    "examples": [
+                        false
+                    ]
+                },
+                "clientCert": {
+                    "$id": "#/properties/ldap/properties/clientCert",
+                    "type": "string",
+                    "title": "Client Certificate",
+                    "description": "Specify the client certificate file name",
+                    "default": ""
+                },
+                "clientKey": {
+                    "$id": "#/properties/ldap/properties/clientKey",
+                    "type": "string",
+                    "title": "Client Key",
+                    "description": "Specify the client certificate key file name",
+                    "default": ""
+                }
+            },
+            "additionalProperties": false
+        },
+        "cdfa": {
+            "$id": "#/properties/cdfa",
+            "type": "object",
+            "title": "Integrated File Agent Configuration",
+            "required": [
+                "fileAgentEnable"
+            ],
+            "properties": {
+                "fileAgentEnable": {
+                    "$id": "#/properties/cdfa/properties/fileAgentEnable",
+                    "type": "string",
+                    "title": "Stop/Start Interated File Agent in container",
+                    "description": "Specify n/y for Integrated File Agent startup configuration",
+                    "default": "n",
+                    "examples": [
+                        "n",
+                        "y"
+                    ]
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": true
+}
+

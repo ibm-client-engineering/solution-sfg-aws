@@ -1,0 +1,57 @@
+{{- include "sch.config.init" (list . "ibm-connect-direct.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+kind: ConfigMap 
+apiVersion: v1 
+metadata:
+  name: {{ $fullName }}
+  annotations:
+        # This is what defines this resource as a hook. Without this line, the
+        # job is considered part of the release.
+        "helm.sh/hook": "pre-install, pre-upgrade, pre-rollback"
+        "helm.sh/hook-weight": "0"
+        "helm.sh/hook-delete-policy": "before-hook-creation"
+  labels:
+    app.kubernetes.io/name: {{ $appName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "ibm-connect-direct.chart" . }}
+    release: {{ .Release.Name }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+  namespace: {{ .Release.Namespace }}
+data:
+  # Configuration values can be set as key-value properties
+  cd_param_file: |
+    cdai_localNodeName={{  .Values.cdArgs.nodeName  }}
+    cdai_serverPort={{  .Values.cdArgs.sport  }}
+    cdai_clientPort={{  .Values.cdArgs.cport  }}
+    cdai_localCertFile={{  .Values.cdArgs.crtName  }}
+    cdai_appuser_name={{ .Values.appUser.name }}
+    cdai_appuser_uid={{ .Values.appUser.uid }}
+    cdai_appuser_gid={{ .Values.appUser.gid }}
+    cdai_admin_uid={{ .Values.cduser.uid }}
+    cdai_admin_gid={{ .Values.cduser.gid }}
+    cdai_fileAgentEnable={{ .Values.cdfa.fileAgentEnable }}
+    cdai_localCertLabel={{ .Values.cdArgs.localCertLabel }}
+    cdai_trustedAddr={{ join "," .Values.cdArgs.trustedAddr }}
+  # Configuration values for LDAP support
+  {{- if .Values.ldap.enabled  }}
+  enabled: {{  .Values.ldap.enabled | quote  }}
+  host: {{  .Values.ldap.host | quote  }}
+  port: {{  .Values.ldap.port | quote  }}
+  domain: {{  .Values.ldap.domain | quote  }}
+  {{- if .Values.ldap.tls  }}
+  tls: {{  .Values.ldap.tls | quote  }}
+  caCert: {{  .Values.ldap.caCert | quote  }}
+  {{- if .Values.ldap.clientValidation  }}
+  clientValidation: {{  .Values.ldap.clientValidation | quote  }}
+  clientCert: {{  .Values.ldap.clientCert | quote  }}
+  clientKey: {{  .Values.ldap.clientKey | quote  }}
+  {{- end }}
+  {{- end }}
+  {{- end }}
+  # SACL configuration
+  saclConfig: {{  .Values.cdArgs.saclConfig | quote  }}

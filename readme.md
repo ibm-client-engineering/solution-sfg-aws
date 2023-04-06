@@ -1658,6 +1658,159 @@ We should now be able to put files here and observe their routing in the `filega
 >
 >You may need to update the health check ports in AWS EC2 for the loadbalancer to point to port `50039` as this will otherwise not allow traffic in.
 
+### Connect Direct
+
+The IBM Sterling Connect Direct charts can be downloaded from the following url:
+
+https://github.com/IBM/charts/raw/master/repo/ibm-helm/ibm-connect-direct-1.2.7.tgz
+
+As of the time of this writing, version 1.2.7 was the latest helm chart available.
+
+Extract the helm chart somewhere:
+
+```
+tar zxvf ibm-connect-direct-1.2.7.tgz
+```
+
+Changed to the `ibm-connect-direct` directory.
+
+```
+cd ibm-connect-direct
+```
+
+IBM Connect Direct is entitled software, so we will need to set our pull secret in the cluster. 
+
+If we are using the IBM repository, create a docker pull secret for it using your IBM pull secret that can be retrieved from here. Only do this if we haven't already created the IBM pull secret `ibm-pull-secret` in our namespace:
+
+https://myibm.ibm.com/products-services/containerlibrary
+
+```
+export ibm_pull_secret="MY PULL SECRET"
+
+kubectl create secret docker-registry ibm-pull-secret \
+--docker-server="cp.icr.io" \
+--docker-username=cp \
+--docker-password=$ibm_pull_secret \
+--docker-email="YOUR_EMAIL"
+```
+
+### Setting pod security policy
+
+The following scripts need to be run by a cluster admin. These will configure the required pod security policies.
+
+```
+cd ibm-connect-direct/ibm_cloud_pak/pak_extensions/pre-install/clusterAdministration/
+sh createSecurityClusterPrereqs.sh
+
+Creating Pod Security Policy
+Warning: policy/v1beta1 PodSecurityPolicy is deprecated in v1.21+, unavailable in v1.25+
+podsecuritypolicy.policy/ibm-connect-direct-psp created
+Creating Cluster Role
+clusterrole.rbac.authorization.k8s.io/ibm-connect-direct-psp created
+
+```
+### Create required secrets
+
+Create a template file with Secret defined as described in the example below:
+
+`ibm-cd-secrets.yaml`
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sterling-cd-secrets
+type: Opaque
+data:
+  admPwd: cEBzc3cwcmQ=
+  crtPwd: cEBzc3cwcmQ=
+  keyPwd: cEBzc3cwcmQ=
+  appUserPwd: cEBzc3cwcmQ=
+```
+
+- `admPwd` refers to the password that will be set for the Admin user 'cduser' after a successful deployment
+- `crtPwd` refers to the password used to decrypt certificate files
+- `keyPwd` refers to the Key Store password
+- `appUserPwd` refers to password for a non-admin Connect:Direct user. This user will only be created inside container if appUserPwd is defined in secret yaml to create Connect:Direct secret object.
+- After the secret is created, delete the yaml file for security reasons. The password entered for admPwd is set as password for the user cduser at pod initialization.
+
+For our example we are setting all the passwords to `p@ssw0rd`. 
+
+>**Note:** 
+>
+>If you want to set different passwords, base64 encoded passwords need to be generated manually by invoking the below command:
+>
+>```
+>echo -n “<password>” | base64
+>```
+>Use the output of this command in the <secret yaml file>.
+
+Run the following command to create the Secret:
+Kubernetes:
+
+```
+kubectl create -f ibm-cd-secrets.yaml
+```
+To check the secret created invoke the following command:
+
+```
+kubectl get secrets
+```
+Now in the ibm-connect-direct directory, let's create our overrides. Or you can use the overrides provided with this documentation repo as it's preconfigured for a non-prod env.
+
+This is valid for installing the Sterling Connect Direct product. 
+
+[sterling-connect-direct-values.yaml](overrides/sterling-connect-direct-values.yaml)
+
+Values in the overrides can be explained here:
+
+https://www.ibm.com/docs/en/connect-direct/6.2.0?topic=installing-configuring-understanding-valuesyaml
+
+### Installing the helm chart for Connect Direct
+
+Edit the `Chart.yaml` file in the `ibm-connect-direct` directory and change the following:
+
+```
+kubeVersion: '>=1.11'
+```
+Should be set to
+```
+kubeVersion: '>=v1.23.16-eks-48e63af'
+```
+
+Run the following to deploy Connect Direct
+
+```
+helm install sterling-cd ibm-connect-direct -f overrides/sterling-connect-direct-values.yaml
+
+NAME: sterling-cd
+LAST DEPLOYED: Thu Apr  6 15:23:02 2023
+NAMESPACE: sterling
+STATUS: deployed
+REVISION: 1
+NOTES:
+Please wait while IBM Connect Direct Unix application is getting deployed. This may take 4-5 minutes to complete the deployment.
+
+See the product documentation for more details.
+https://www.ibm.com/support/knowledgecenter/SS4PJT_6.2.0/cd_unix_62_welcome.html
+
+Post helm installation steps.
+
+1. Wait for the pod to become ready. You can keep track of the pods either through the dashboard or through the command line interface: 
+        kubectl get pods -l release=sterling-cd -n sterling -o wide
+
+   From the output of above command, verify the STATUS as "Running".
+
+2. To view the service and ports exposed in pod.
+        kubectl get svc -l release=sterling-cd -n sterling -o wide
+  
+   From the output of above command, view the external IP and exposed ports under EXTERNAL-IP 
+   and PORT(S) column respectively and use them for communication. If external LoadBalancer is 
+   not present refer Master node IP as external IP.
+
+```
+
+
+
 
 ## Security
 :construction:

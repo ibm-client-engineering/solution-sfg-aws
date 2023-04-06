@@ -1,0 +1,61 @@
+{{- include "sch.config.init" (list . "ibm-connect-direct.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list . "test") }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ $fullName | quote }}
+  annotations:
+    helm.sh/hook: test-success
+    helm.sh/hook-delete-policy: hook-succeeded
+{{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering "" "" nil) | indent 4 }}
+  labels:
+    app.kubernetes.io/name: {{  $appName  }}-test
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    app.kubernetes.io/managed-by: {{  .Release.Service  }}
+    helm.sh/chart: {{  include "ibm-connect-direct.chart" .  }}
+    release: {{  .Release.Name  }}
+
+spec:
+  restartPolicy: Never
+  {{- if .Values.serviceAccount.create }}
+  serviceAccountName: {{ $saName }}
+  {{- else }}
+  serviceAccountName: {{ .Values.serviceAccount.name | default "default" }}
+  {{- end }}
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+  securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 4 }}
+  affinity:
+{{- include "ibm-connect-direct.nodeAffinity" (list . .Values.affinity.nodeAffinity) | indent 8 }}
+  containers:
+    - name: {{  .Chart.Name  }}
+      {{- if .Values.image.digest.enabled }}
+      image: "{{  .Values.image.repository  }}@{{ .Values.image.digest.value }}"
+      {{- else }}
+      image: "{{  .Values.image.repository  }}:{{ .Values.image.tag  }}"
+      {{- end }}
+      imagePullPolicy: {{ .Values.image.pullPolicy }}
+      securityContext:
+{{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 8 }}
+      #command: ["echo 'quit;' | /opt/cdunix/ndm/bin/direct -x ; ret=$?; if [ $ret != 0 ];  then exit 1; else exit 0; fi"]
+      command: ["/bin/sh", "-c", "ret=`tail /opt/cdunix/work/cdaiLog.txt | grep finalRc | awk '{print $7}'` ; if [ $ret == 'finalRc=0' ]; then echo 'CDU installation is successful and application is running' ; else echo 'Installation failed' ; fi"]
+
+      resources:
+        limits:
+{{ toYaml .Values.resources.limits | indent 14 }}
+        requests:
+{{ toYaml .Values.resources.requests | indent 14 }}
+     
+      volumeMounts:
+        - mountPath: /opt/cdunix/work
+          name: cd-vol
+          subPath: WORK
+
+  volumes:
+    - name: cd-vol
+      persistentVolumeClaim:
+        claimName: {{ $fullName }}-pvc

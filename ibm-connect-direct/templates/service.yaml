@@ -1,0 +1,64 @@
+{{- include "sch.config.init" (list . "ibm-connect-direct.sch.chart.config.values") }}
+{{ $appName := include "sch.names.appName" (list .) }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $saName := include "sch.names.fullCompName" (list . "serviceaccount") }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $fullName }}
+  labels: 
+    app.kubernetes.io/name: {{ $appName }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ include "ibm-connect-direct.chart" . }}
+    release: {{ .Release.Name }}
+    author: IBM
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+  namespace: {{ .Release.Namespace }}
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  selector:
+    app.kubernetes.io/name: {{  $appName  }}
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    release: {{ .Release.Name }}
+    author: IBM
+  type: {{  .Values.service.type  }}
+  ports:
+    - name: {{  .Values.service.apiport.name  }}
+      {{- if .Values.service.apiport.port }}
+      port: {{ .Values.service.apiport.port }}
+      {{- else }}
+      port: {{  .Values.cdArgs.cport  }}
+      {{- end }}
+      targetPort: {{  .Values.cdArgs.cport  }}
+      protocol: {{  .Values.service.apiport.protocol  }}
+    - name: {{  .Values.service.ftport.name  }}
+      {{- if .Values.service.ftport.port }}
+      port: {{  .Values.service.ftport.port  }}
+      {{- else }}
+      port: {{  .Values.cdArgs.sport  }}
+      {{- end }}
+      targetPort: {{  .Values.cdArgs.sport  }}
+      protocol: {{  .Values.service.ftport.protocol  }}
+  {{- if .Values.service.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+  {{- end }}
+  {{- if .Values.service.sessionAffinity }}
+  sessionAffinity: {{ .Values.service.sessionAffinity  }}
+  {{- end }}   
+  {{- if .Values.service.externalIP }}
+  externalIPs:
+{{toYaml  .Values.service.externalIP | indent 4 }}
+  {{- end }}
+  {{- if and (eq .Values.service.type "LoadBalancer") (.Values.service.loadBalancerIP) }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+{{- if .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml .Values.service.loadBalancerSourceRanges | indent 4 }}
+{{- end }}

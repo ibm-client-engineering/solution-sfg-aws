@@ -1,0 +1,22 @@
+{{- include "sch.config.init" (list . "ibm-connect-direct.sch.chart.config.values") }}
+{{- if and (.Capabilities.APIVersions.Has "monitoringcontroller.cloud.ibm.com/v1") .Values.dashboard.enabled -}}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $appName := include "sch.names.appName" (list .) }}
+apiVersion: monitoringcontroller.cloud.ibm.com/v1
+kind: MonitoringDashboard
+metadata:
+  name: {{  $fullName  }}
+  labels:
+    app.kubernetes.io/name: {{  $appName  }}
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    app.kubernetes.io/managed-by: {{  .Release.Service  }}
+    helm.sh/chart: {{  include "ibm-connect-direct.chart" .  }}
+    release: {{  .Release.Name  }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+spec:
+  enabled: true
+  data: |-
+{{ .Files.Get "ibm_cloud_pak/pak_extensions/dashboards/grafana-dashboard.json" | indent 4 }}
+{{- end }}

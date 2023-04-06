@@ -1,0 +1,42 @@
+{{- include "sch.config.init" (list . "ibm-connect-direct.sch.chart.config.values") }}
+{{ $fullName := include "sch.names.fullName" (list .) }}
+{{ $appName := include "sch.names.appName" (list .) }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{  $fullName  }}
+  labels:
+    app.kubernetes.io/name: {{  $appName  }}
+    app.kubernetes.io/instance: {{  .Release.Name  }}
+    app.kubernetes.io/managed-by: {{  .Release.Service  }}
+    helm.sh/chart: {{  include "ibm-connect-direct.chart" .  }}
+    release: {{  .Release.Name  }}
+{{- if .Values.extraLabels }}
+{{ toYaml .Values.extraLabels | indent 4 }}
+{{- end }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{  $appName  }}
+      app.kubernetes.io/instance: {{  .Release.Name  }}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+# Network Policy from
+{{- with .Values.networkPolicy.from }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+ 
+    # Allow traffic to following destinations. Anything not defined here will be blocked
+    ports:
+    - protocol: {{ .Values.service.apiport.protocol }}
+      port: {{  .Values.cdArgs.cport  }}
+    - protocol: {{ .Values.service.ftport.protocol }}
+      port: {{  .Values.cdArgs.sport  }}
+    {{- if .Values.ldap.enabled }}
+    - protocol: TCP
+      port: {{ .Values.ldap.port }}
+    {{- end }}
+  
