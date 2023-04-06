@@ -1549,7 +1549,7 @@ Next let's configure our allowed users. This can be set to match a group, but fo
 
 <img src="images/sfg-sftp-server-adapter-step08.png" width="300">
 
-Our final services configuration should look similar to below. Make sure to check `Enable Service for Business Processes` as this will actually start the service.
+Our final services configuration should look similar to below. Make sure to check `Enable Service for Business Processes` as this will actually start the service. Also important to note that the listen port for the service will be `50039`.
 
 <img src="images/sfg-sftp-server-adapter-step09.png" width="300">
 
@@ -1568,6 +1568,96 @@ You should see under Advanced Stats that the service in running and enabled. Cli
 <img src="images/sfg-sftp-server-adapter-step12.png" width="300">
 
 ### Cluster configuration to allow inbound access
+
+So because we enabled the adapter to the AC node, we would need to add the extra ports to the overrides yaml for that service. 
+We are also listening to port 50039
+
+So we update our AC overrides with the following:
+```
+ac:
+  replicaCount: 1
+  env:
+    jvmOptions:
+    #Refer to global env.extraEnvs for sample values
+    extraEnvs: []
+
+  frontendService:
+    type: ClusterIP
+    ports:
+      http: 
+        name: http
+        port: 35004
+        targetPort: http
+        nodePort: 30004
+        protocol: TCP
+    extraPorts:
+      - name: sftp-frontend
+        port: 50039
+        targetPort: 50039
+        nodePort: 50039
+        protocol: TCP
+    loadBalancerIP:  
+    annotations: {}  
+      
+  backendService:
+    type: LoadBalancer
+    ports:
+      - name: adapter-1
+        port: 30401
+        targetPort: 30401
+        nodePort: 30401
+        protocol: TCP
+      - name: sftp-backend
+        port: 50039
+        targetPort: 50039
+        nodePort: 50039
+        protocol: TCP
+    portRanges:
+      - name: adapters
+        portRange: 30501-30510
+        targetPortRange: 30501-30510
+        nodePortRange: 30501-30510
+        protocol: TCP
+    loadBalancerIP:  
+    annotations: {} 
+```
+
+Let's run a helm upgrade after updating our overrides:
+
+```
+helm upgrade sterling-b2bi --debug -f overrides/sterling-b2bi-values.yaml ibm-b2bi-prod --timeout 3600s --namespace sterling
+```
+
+When that is complete, retrieve the loadbalancer address with the following command:
+
+```
+kubectl get service sterling-b2bi-b2bi-ac-backend-svc -o jsonpath="{..hostname}"
+
+a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com
+```
+
+Verify that SFTP works from cmdline with the following:
+
+```
+sftp -P 50039 partner2@a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com
+The authenticity of host '[a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com]:50039 ([3.214.94.81]:50039)' can't be established.
+RSA key fingerprint is SHA256:fVTB9EihSrd651+zvl2RvzjuhZX11iwQaxNwBgDyvT4.
+This key is not known by any other names
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '[a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com]:50039' (RSA) to the list of known hosts.
+SSH Server supporting SFTP and SCP
+partner2@a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com's password: 
+Connected to a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com.
+sftp>
+
+```
+
+We should now be able to put files here and observe their routing in the `filegateway`
+
+>**Note**
+>
+>You may need to update the health check ports in AWS EC2 for the loadbalancer to point to port `50039` as this will otherwise not allow traffic in.
+
 
 ## Security
 :construction:
