@@ -1509,6 +1509,65 @@ Search for the file that was uploaded. We called it `readme.txt` in this example
 
 <img src="images/File_search2.png" width="300">
 
+### SFTP Access
+
+In order to enable the SFTP Server Adapter, we first must create a host key.
+
+Log into the `dashboard` url for B2Bi and select:
+
+**Deployment->SSH Host Indentity Key**
+
+Select the **Go** button next to New Host Identity key
+
+<img src="images/sfg-sftp-server-adapter-step01.png" width="300">
+
+Set the hostname to something that matches. In our example we set it to `sterlingb2bi` and then set the key length to 2048.
+
+<img src="images/sfg-sftp-server-adapter-step02.png" width="300">
+
+Under **Deployment->Services->Configuration** Create the new service.
+
+<img src="images/sfg-sftp-server-adapter-step03.png" width="300">
+
+Select `SFTP Server Adapter 2.0` under the Service Type.
+
+<img src="images/sfg-sftp-server-adapter-step04.png" width="300">
+
+Under `Services Configuration`, let's name this `SFTP Server Inbound` and also set that as the description. While B2BI has the capability of scaling the service to live across multiple pods, for now we are going to have it just live on our AC service pod.
+
+<img src="images/sfg-sftp-server-adapter-step05.png" width="300">
+
+Let's configure our Services Configuration for SFTP Server Inbound with the following values. Our `Host Identity Key` will be pre-populated with the host key we already created.
+
+<img src="images/sfg-sftp-server-adapter-step06.png" width="300">
+
+Now let's set our document storage. For testing purposes we selected the Database to be our storage location where the files will be stored as blobs. Going forward this might not be the ideal location, but it is suitable for testing.
+
+<img src="images/sfg-sftp-server-adapter-step07.png" width="300">
+
+Next let's configure our allowed users. This can be set to match a group, but for our purposes, we will use the two partner ids we created above.
+
+<img src="images/sfg-sftp-server-adapter-step08.png" width="300">
+
+Our final services configuration should look similar to below. Make sure to check `Enable Service for Business Processes` as this will actually start the service.
+
+<img src="images/sfg-sftp-server-adapter-step09.png" width="300">
+
+Let's verify the SFTP Adapter Service came up.
+
+Under **Services->Configuration** search for `SFTP Inbound` as that's what we called this service adapter.
+
+<img src="images/sfg-sftp-server-adapter-step10.png" width="300">
+
+Under the `Select Node` dropdown, set it to `node1AC1` as that's where we hosted this adapter service.
+
+<img src="images/sfg-sftp-server-adapter-step11.png" width="300">
+
+You should see under Advanced Stats that the service in running and enabled. Clicking the exclaimation point next to `Enabled` will show you the service log.
+
+<img src="images/sfg-sftp-server-adapter-step12.png" width="300">
+
+### Cluster configuration to allow inbound access
 
 ## Security
 :construction:
