@@ -398,7 +398,18 @@ ac:
         targetPort: http
         nodePort: 30004
         protocol: TCP
-    extraPorts: []
+    extraPorts:
+      - name: sftp-frontend
+        port: 50039
+        targetPort: 50039
+#        nodePort: 30510
+        nodePort: 50039
+        protocol: TCP
+      - name: cd-frontend
+        port: 51364
+        targetPort: 51364
+        nodePort: 51364
+        protocol: TCP
     loadBalancerIP:  
     annotations: {}  
       
@@ -410,12 +421,22 @@ ac:
         targetPort: 30401
         nodePort: 30401
         protocol: TCP
-    portRanges: []
-#      - name: adapters
-#        portRange: 30501-30600
-#        targetPortRange: 30501-30600
-#        nodePortRange: 30501-30600
-#        protocol: TCP
+      - name: sftp-backend
+        port: 50039
+        targetPort: 50039
+        nodePort: 50039
+        protocol: TCP
+      - name: cd-backend
+        port: 51364
+        targetPort: 51364
+        nodePort: 51364
+        protocol: TCP
+    portRanges:
+      - name: adapters
+        portRange: 30501-30510
+        targetPortRange: 30501-30510
+        nodePortRange: 30501-30510
+        protocol: TCP
     loadBalancerIP:  
     annotations: {} 
 
