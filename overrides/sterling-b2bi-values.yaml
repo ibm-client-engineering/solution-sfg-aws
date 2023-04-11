@@ -405,6 +405,11 @@ ac:
 #        nodePort: 30510
         nodePort: 50039
         protocol: TCP
+      - name: cd-frontend
+        port: 51364
+        targetPort: 51364
+        nodePort: 51364
+        protocol: TCP
     loadBalancerIP:  
     annotations: {}  
       
@@ -417,11 +422,14 @@ ac:
         nodePort: 30401
         protocol: TCP
       - name: sftp-backend
-#        port: 30510
         port: 50039
         targetPort: 50039
-#        nodePort: 30510
         nodePort: 50039
+        protocol: TCP
+      - name: cd-backend
+        port: 51364
+        targetPort: 51364
+        nodePort: 51364
         protocol: TCP
     portRanges:
       - name: adapters

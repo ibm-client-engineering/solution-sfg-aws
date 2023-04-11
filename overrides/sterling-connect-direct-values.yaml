@@ -57,7 +57,7 @@ cdArgs:
   # Specify the node of C:D application
   nodeName: "cdnode"
   # Specify the certificate name to be used for Secure+ configuration
-  crtName: ""
+  crtName: "ca.crt"
   # Specify the certificate label to be used in keystore DB
   localCertLabel: "Client-API"
   # Specify the client port to be used by C:D application 
@@ -88,12 +88,12 @@ appUser:
 # Specify these fields for C:D admin user `cduser`
 cduser:
   # Specify this to set a UID for the `cduser`. This is also equivalent to runAsUser security context.
-  uid: 45678
+  uid: 1000
   # Specify this to set a GID for the `cduser`. This is also equivalent to `runAsGroup` security context.
-  gid: 45678
+  gid: 1000
 
 storageSecurity:
-  fsGroup: 45678
+  fsGroup: 1000
   supplementalGroups: [5555]
 
 # persistence section specifies persistence settings which apply to the whole chart
@@ -170,7 +170,7 @@ secret:
   # Secret name for configuring passwords for C:D
   secretName: "sterling-cd-secrets"
   # Secret name of secure plus certificates and LDAP certificates, only needed if Dyanamic Provisioining is Enabled
-  certSecretName: ""
+  certSecretName: "cd-cert-secret"
 
 # Specify the service account details
 serviceAccount:
@@ -265,4 +265,4 @@ ldap:
 # Integrated File Agent Configuration
 cdfa:
   # Set its value to "y" to enable file agent service in container
-  fileAgentEnable: "y"
+  fileAgentEnable: "n"
