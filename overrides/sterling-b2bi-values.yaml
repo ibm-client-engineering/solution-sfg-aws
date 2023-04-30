@@ -24,6 +24,17 @@ global:
         ports:
           - protocol: TCP
             port: 1521
+      - name: allow-egress-to-cd
+        toSelectors:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: b2bi
+              release: sterling-b2bi
+        - ipBlock:
+            cidr: 192.168.99.219/32
+        ports:
+          - protocol: TCP
+            port: 1366
 
 # metadata:
 #  labels: 
@@ -97,7 +108,8 @@ security:
 ingress:
   enabled: true
   controller: nginx
-  annotations: {}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 2000m
   port:
 
 dataSetup:
@@ -292,7 +304,7 @@ asi:
     initialDelaySeconds: 120
     timeoutSeconds: 30
     periodSeconds: 60
-    failureThreshold: 3
+    failureThreshold: 9
       
   internalAccess:
     enableHttps: true
