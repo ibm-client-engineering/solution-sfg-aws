@@ -41,6 +41,10 @@ Please wait while the application is getting deployed.
 {{- end }} 
 {{- end }}
 
+{{- if .Values.setupCfg.softStopTimeout }}
+echo " .Values.setupCfg.softStopTimeout is depricated. Instead use setupCfg.terminationGracePeriod for Termination grace period for Containers."
+{{- end }}
+
 {{- if contains "NodePort" .Values.asi.frontendService.type }}
   export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
   export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[1].nodePort}" services {{ template "b2bi.fullname" . }})

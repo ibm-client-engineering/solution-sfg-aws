@@ -14,6 +14,7 @@
 			},
 			"required": [
 				"license",
+                                "licenseType",
 				"image",
 				"networkPolicies"
 			],
@@ -25,6 +26,14 @@
 					"description": "Accept B2BI/SFG license after reading it. B2BI: https://ibm.biz/BdPzHS SFG: https://ibm.biz/BdPzHv",
 					"default": false
 				},
+                                "licenseType": {
+                                        "$id": "#/properties/global/properties/licenseType",
+                                        "type": "string",
+                                        "title": "B2BI/SFG license Type",
+                                        "description": "Specify the license edition as per license agreement. values can be prod or non-prod",
+                                        "default": "prod",
+                                        "enum": ["prod", "non-prod"]
+                                },
 				"image": {
 					"$id": "#/properties/global/properties/image",
 					"type": "object",
@@ -490,6 +499,7 @@
 			"required": [
 				"enabled",				
 				"accessMode",
+                                "enableVolumeClaimPerPod",
 				"size"
 			],
 			"properties": {
@@ -553,7 +563,14 @@
 					"title": "Size of the volume claim",
 					"description": "Defaults to 500Mi of storage request. Choose a different size of disk if needed.",
 					"default": "500Mi"
-				}
+				},
+                                "enableVolumeClaimPerPod": {
+                                        "$id": "#/properties/appDocumentsPVC/properties/enableVolumeClaimPerPod",
+                                        "type": "boolean",
+                                        "title": "Enable persistent volume claim per pod for documents",
+                                        "description": "Select to enable persistent volume claim for storing application documents at pod level, if document storage is set to file system.",
+                                        "default": false
+                                }
 			}
 		},
 		"extraPVCs": {
@@ -607,6 +624,14 @@
 					"description": "File system group id for persistent volume.",
 					"default": null
 				},
+                                "fsGroupChangePolicy": {
+                                        "$id": "#/properties/security/properties/fsGroupChangePolicy",
+                                        "type": "string",
+                                        "title": "File System Group Change Policy",
+                                        "description": "File system Group change policy.",
+                                        "default": "OnRootMismatch",
+                                        "enum": ["OnRootMismatch", "Always"]
+                                },
 				"runAsUser": {
 					"$id": "#/properties/security/properties/runAsUser",
 					"type": [
@@ -1095,15 +1120,15 @@
 					"description": "Specify the SMTP host details.",
 					"default": ""
 				},
-				"softStopTimeout": {
-					"$id": "#/properties/setupCfg/properties/softStopTimeout",
+				"terminationGracePeriod": {
+					"$id": "#/properties/setupCfg/properties/terminationGracePeriod",
 					"type": [
 						"number",
 						"null"
 					],
-					"title": "SoftStop Timeout",
+					"title": "Termination Grace Period",
 					"description": "The time in seconds that Docker waits before shutting down the container after user runs the Docker stop command.",
-					"default": ""
+					"default": 30
 				},
 				"jmsVendor": {
 					"$id": "#/properties/setupCfg/properties/jmsVendor",
@@ -1330,16 +1355,56 @@
 					"description": "useSslForRmi can be set to true to enable ssl over RMI calls.",
 					"default": true
 				},
-                                "rmiTlsSecretName": {
-                                        "$id": "#/properties/setupCfg/properties/rmiTlsSecretName",
-                                        "type": [
-                                                "string",
-                                                "null"
-                                        ],
-                                        "title": "RMI Secret Name",
-                                        "description": "Specify the RMI secret name.",
-                                        "default": null
-                                }
+                "rmiTlsSecretName": {
+                    "$id": "#/properties/setupCfg/properties/rmiTlsSecretName",
+                    "type": [
+                                "string",
+                                "null"
+                            ],
+                    "title": "RMI Secret Name",
+                    "description": "Specify the RMI secret name.",
+                    "default": null
+                },
+				"sapSncSecretName": {
+                    "$id": "#/properties/setupCfg/properties/sapSncSecretName",
+                    "type": [
+                                "string",
+                                "null"
+                            ],
+                    "title": "SAP SNC secret name",
+                    "description": "Name of the secret holding SAP SNC PSE file and password.",
+                    "default": null
+                },
+				"sapSncLibVendorName": {
+                    "$id": "#/properties/setupCfg/properties/sapSncLibVendorName",
+                    "type": [
+                                "string",
+                                "null"
+                            ],
+                    "title": "SAP SNC library vendor name",
+                    "description": "SAP SNC library vendor name.",
+                    "default": null
+                },
+				"sapSncLibVersion": {
+                    "$id": "#/properties/setupCfg/properties/sapSncLibVersion",
+                    "type": [
+                                "string",
+                                "null"
+                            ],
+                    "title": "SAP SNC library version",
+                    "description": "SAP SNC library version.",
+                    "default": null
+                },
+				"sapSncLibName": {
+                    "$id": "#/properties/setupCfg/properties/sapSncLibName",
+                    "type": [
+                                "string",
+                                "null"
+                            ],
+                    "title": "SAP SNC library name",
+                    "description": "SAP SNC library name.",
+                    "default": null
+                }
 			},
 			"additionalProperties": true
 		},
@@ -1425,6 +1490,33 @@
 							"title": "Service type",
 							"description": "Specify kubernetes service type.",
 							"default": "ClusterIP"
+						},
+						"sessionAffinityConfig": {
+							"$id": "#/properties/asi/properties/frontendService/properties/sessionAffinityConfig",
+							"type": "object",
+							"title": "Session Affinity Configuration",
+							"default": {
+
+							},
+							"required": [
+							],
+							"properties": {
+								"timeoutSeconds": {
+									"$id": "#/properties/asi/properties/frontendService/properties/sessionAffinityConfig/properties/timeoutSeconds",
+									"type": "integer",
+									"title": "Timeout Seconds",
+									"description": "Session affinity timeout seconds.",
+									"default": 10800
+								}
+							}
+						},
+						"externalTrafficPolicy": {
+							"$id": "#/properties/asi/properties/frontendService/properties/externalTrafficPolicy",
+							"type": "string",
+							"title": "External Traffic Policy",
+							"description": "Route external traffic to node-local or cluster-wide endpoints.",
+							"default": "Cluster",
+							"enum": ["Cluster", "Local"]
 						},
 						"ports": {
 							"$id": "#/properties/asi/properties/frontendService/properties/ports",
@@ -1761,6 +1853,41 @@
 							"title": "Service type",
 							"description": "Specify kubernetes service type.",
 							"default": "LoadBalancer"
+						},
+						"sessionAffinity": {
+							"$id": "#/properties/asi/properties/backendService/properties/sessionAffinity",
+							"type": "string",
+							"title": "Session Affinity",
+							"description": "Used to maintain session affinity.",
+							"default": "None",
+							"enum": ["None", "ClientIP"]
+						},
+						"sessionAffinityConfig": {
+							"$id": "#/properties/asi/properties/backendService/properties/sessionAffinityConfig",
+							"type": "object",
+							"title": "Session Affinity Configuration",
+							"default": {
+
+							},
+							"required": [
+							],
+							"properties": {
+								"timeoutSeconds": {
+									"$id": "#/properties/asi/properties/backendService/properties/sessionAffinityConfig/properties/timeoutSeconds",
+									"type": "integer",
+									"title": "Timeout Seconds",
+									"description": "Session affinity timeout seconds.",
+									"default": 10800
+								}
+							}
+						},						
+						"externalTrafficPolicy": {
+							"$id": "#/properties/asi/properties/backendService/properties/externalTrafficPolicy",
+							"type": "string",
+							"title": "External Traffic Policy",
+							"description": "Route external traffic to node-local or cluster-wide endpoints.",
+							"default": "Cluster",
+							"enum": ["Cluster", "Local"]
 						},
 						"ports": {
 							"$id": "#/properties/asi/properties/backendService/properties/ports",
@@ -2796,6 +2923,33 @@
 							"description": "Specify kubernetes service type.",
 							"default": "ClusterIP"
 						},
+						"sessionAffinityConfig": {
+							"$id": "#/properties/ac/properties/frontendService/properties/sessionAffinityConfig",
+							"type": "object",
+							"title": "Session Affinity Configuration",
+							"default": {
+
+							},
+							"required": [
+							],
+							"properties": {
+								"timeoutSeconds": {
+									"$id": "#/properties/ac/properties/frontendService/properties/sessionAffinityConfig/properties/timeoutSeconds",
+									"type": "integer",
+									"title": "Timeout Seconds",
+									"description": "Session affinity timeout seconds.",
+									"default": 10800
+								}
+							}
+						},
+						"externalTrafficPolicy": {
+							"$id": "#/properties/ac/properties/frontendService/properties/externalTrafficPolicy",
+							"type": "string",
+							"title": "External Traffic Policy",
+							"description": "Route external traffic to node-local or cluster-wide endpoints.",
+							"default": "Cluster",
+							"enum": ["Cluster", "Local"]
+						},
 						"ports": {
 							"$id": "#/properties/ac/properties/frontendService/properties/ports",
 							"type": "object",
@@ -2918,6 +3072,41 @@
 							"title": "Service type",
 							"description": "Specify kubernetes service type.",
 							"default": "LoadBalancer"
+						},
+						"sessionAffinity": {
+							"$id": "#/properties/ac/properties/backendService/properties/sessionAffinity",
+							"type": "string",
+							"title": "Session Affinity",
+							"description": "Used to maintain session affinity.",
+							"default": "None",
+							"enum": ["None", "ClientIP"]
+						},
+						"sessionAffinityConfig": {
+							"$id": "#/properties/ac/properties/backendService/properties/sessionAffinityConfig",
+							"type": "object",
+							"title": "Session Affinity Configuration",
+							"default": {
+
+							},
+							"required": [
+							],
+							"properties": {
+								"timeoutSeconds": {
+									"$id": "#/properties/ac/properties/backendService/properties/sessionAffinityConfig/properties/timeoutSeconds",
+									"type": "integer",
+									"title": "Timeout Seconds",
+									"description": "Session affinity timeout seconds.",
+									"default": 10800
+								}
+							}
+						},
+						"externalTrafficPolicy": {
+							"$id": "#/properties/ac/properties/backendService/properties/externalTrafficPolicy",
+							"type": "string",
+							"title": "External Traffic Policy",
+							"description": "Route external traffic to node-local or cluster-wide endpoints.",
+							"default": "Cluster",
+							"enum": ["Cluster", "Local"]
 						},
 						"ports": {
 							"$id": "#/properties/ac/properties/backendService/properties/ports",
@@ -3818,6 +4007,33 @@
 							"description": "Specify kubernetes service type.",
 							"default": "ClusterIP"
 						},
+						"sessionAffinityConfig": {
+							"$id": "#/properties/api/properties/frontendService/properties/sessionAffinityConfig",
+							"type": "object",
+							"title": "Session Affinity Configuration",
+							"default": {
+
+							},
+							"required": [
+							],
+							"properties": {
+								"timeoutSeconds": {
+									"$id": "#/properties/api/properties/frontendService/properties/sessionAffinityConfig/properties/timeoutSeconds",
+									"type": "integer",
+									"title": "Timeout Seconds",
+									"description": "Session affinity timeout seconds.",
+									"default": 10800
+								}
+							}
+						},
+						"externalTrafficPolicy": {
+							"$id": "#/properties/api/properties/frontendService/properties/externalTrafficPolicy",
+							"type": "string",
+							"title": "External Traffic Policy",
+							"description": "Route external traffic to node-local or cluster-wide endpoints.",
+							"default": "Cluster",
+							"enum": ["Cluster", "Local"]
+						},
 						"ports": {
 							"$id": "#/properties/api/properties/frontendService/properties/ports",
 							"type": "object",
@@ -4706,7 +4922,7 @@
 							"type": "string",
 							"title": "test image tag",
 							"description": "Test docker image tag.",
-							"default": "1.1.54"
+							"default": "1.1.60"
 						},
 						"digest": {
 							"$id": "#/properties/test/properties/image/properties/digest",

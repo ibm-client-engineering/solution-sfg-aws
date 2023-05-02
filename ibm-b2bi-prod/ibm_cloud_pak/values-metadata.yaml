@@ -11,6 +11,17 @@ global:
       description: "Set it to true to accept the terms in the license agreement."
       immutable: false
       required: true
+  licenseType:
+    __metadata:
+      label: "LicenceType for b2bi/sfg"
+      description: "Specify the license edition as per license agreement. values can be prod or non-prod"
+      immutable: false
+      required: true
+      options:
+      - label: prod
+        value: prod
+      - label: non-prod
+        value: non-prod
   image:
     repository: 
       __metadata:
@@ -324,6 +335,11 @@ appDocumentsPVC:
     __metadata:
       label: "Size of the volume claim"
       description: "Defaults to 500Mi of storage request. Choose a different size of disk if needed."
+  enableVolumeClaimPerPod:
+    __metadata:
+      label: "Enable persistent volume claim for documents per pod"
+      description: "Select to enable persistent volume claim for storing application documents at pod level, if document storage is set to file system."
+      type: "boolean"
   preDefinedDocumentPVCName:
     __metadata:
       label: "Predefined Name of the Document persistent volume claim"
@@ -352,6 +368,18 @@ security:
       type: "number"
       immutable: false
       required: false
+  fsGroupChangePolicy:
+    __metadata:
+      label: "File System Group Change Policy"
+      description: "File system group change policy for persistent volume"
+      type: "string"
+      immutable: false
+      required: false
+      options:
+      - label: OnRootMismatch
+        value: OnRootMismatch
+      - label: Always
+        value: Always
   runAsUser:
     __metadata:
       label: 'Run as User'
@@ -666,9 +694,9 @@ setupCfg:
       type: "string"
       immutable: false
       required: true
-  softStopTimeout:
+  terminationGracePeriod:
     __metadata:
-      label: "SoftStop Timeout"
+      label: "Termination Grace Period"
       description: "The time in seconds that Docker waits before shutting down the container after user runs the Docker stop command."
       type: "number"
       immutable: false
@@ -856,6 +884,38 @@ setupCfg:
       type: "string"
       immutable: false
       required: false
+  
+  sapSncSecretName:
+    __metadata:
+      label: "SAP SNC secret name"
+      description:  "Name of the secret holding SAP SNC PSE file and password."
+      type: "string"
+      immutable: false
+      required: false
+  
+  sapSncLibVendorName:
+    __metadata:
+      label: "SAP SNC library vendor name"
+      description:  "SAP SNC library vendor name."
+      type: "string"
+      immutable: false
+      required: false
+  
+  sapSncLibVersion:
+    __metadata:
+      label: "SAP SNC library version"
+      description:  "SAP SNC library verison."
+      type: "string"
+      immutable: false
+      required: false
+
+  sapSncLibName:
+    __metadata:
+      label: "SAP SNC library name"
+      description:  "SAP SNC library name."
+      type: "string"
+      immutable: false
+      required: false
 
 asi:
   __metadata:
@@ -901,6 +961,26 @@ asi:
           value: 'LoadBalancer'
         - label: 'ExternalName'
           value: 'ExternalName'
+    sessionAffinityConfig:
+      timeoutSeconds:
+            __metadata:
+              label: "Timeout Seconds"
+              description: "Session affinity timeout in seconds."
+              type: "number"
+              immutable: false
+              required: false
+    externalTrafficPolicy:
+      __metadata:
+        label: "External Traffic Policy"
+        description: "Specify kubernetes external traffic policy."
+        type: "string"
+        immutable: false
+        required: true
+        options:
+        - label: 'Cluster'
+          value: 'Cluster'
+        - label: 'Local'
+          value: 'Local'          
     ports:
       http:
         name:
@@ -1025,6 +1105,38 @@ asi:
           value: 'LoadBalancer'
         - label: 'ExternalName'
           value: 'ExternalName'
+    sessionAffinity:
+      __metadata:
+        label: "Session Affinity"
+        description: "Specify kubernetes session affinity."
+        type: "string"
+        immutable: false
+        required: true
+        options:
+        - label: 'ClientIP'
+          value: 'ClientIP'
+        - label: 'None'
+          value: 'None'
+    sessionAffinityConfig:
+      timeoutSeconds:
+            __metadata:
+              label: "Timeout Seconds"
+              description: "Session affinity timeout in seconds."
+              type: "number"
+              immutable: false
+              required: false
+    externalTrafficPolicy:
+      __metadata:
+        label: "External Traffic Policy"
+        description: "Specify kubernetes external traffic policy."
+        type: "string"
+        immutable: false
+        required: true
+        options:
+        - label: 'Cluster'
+          value: 'Cluster'
+        - label: 'Local'
+          value: 'Local' 
     ports:
       __metadata:
         label: "Service Ports"
@@ -1530,6 +1642,26 @@ ac:
           value: 'LoadBalancer'
         - label: 'ExternalName'
           value: 'ExternalName'
+    sessionAffinityConfig:
+      timeoutSeconds:
+            __metadata:
+              label: "Timeout Seconds"
+              description: "Session affinity timeout in seconds."
+              type: "number"
+              immutable: false
+              required: false
+    externalTrafficPolicy:
+      __metadata:
+        label: "External Traffic Policy"
+        description: "Specify kubernetes external traffic policy."
+        type: "string"
+        immutable: false
+        required: true
+        options:
+        - label: 'Cluster'
+          value: 'Cluster'
+        - label: 'Local'
+          value: 'Local' 
     ports:
       http:
         name:
@@ -1594,6 +1726,38 @@ ac:
           value: 'LoadBalancer'
         - label: 'ExternalName'
           value: 'ExternalName'
+    sessionAffinity:
+      __metadata:
+        label: "Session Affinity"
+        description: "Specify kubernetes session affinity."
+        type: "string"
+        immutable: false
+        required: true
+        options:
+        - label: 'ClientIP'
+          value: 'ClientIP'
+        - label: 'None'
+          value: 'None'
+    sessionAffinityConfig:
+      timeoutSeconds:
+            __metadata:
+              label: "Timeout Seconds"
+              description: "Session affinity timeout in seconds."
+              type: "number"
+              immutable: false
+              required: false
+    externalTrafficPolicy:
+      __metadata:
+        label: "External Traffic Policy"
+        description: "Specify kubernetes external traffic policy."
+        type: "string"
+        immutable: false
+        required: true
+        options:
+        - label: 'Cluster'
+          value: 'Cluster'
+        - label: 'Local'
+          value: 'Local' 
     ports:
       __metadata:
         label: "Service Ports"
@@ -2030,6 +2194,26 @@ api:
           value: 'LoadBalancer'
         - label: 'ExternalName'
           value: 'ExternalName'
+    sessionAffinityConfig:
+      timeoutSeconds:
+            __metadata:
+              label: "Timeout Seconds"
+              description: "Session affinity timeout in seconds."
+              type: "number"
+              immutable: false
+              required: false
+    externalTrafficPolicy:
+      __metadata:
+        label: "External Traffic Policy"
+        description: "Specify kubernetes external traffic policy."
+        type: "string"
+        immutable: false
+        required: true
+        options:
+        - label: 'Cluster'
+          value: 'Cluster'
+        - label: 'Local'
+          value: 'Local' 
     ports:
       http:
         name:
