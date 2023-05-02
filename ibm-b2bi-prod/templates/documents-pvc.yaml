@@ -6,7 +6,7 @@
 
 {{- $name := include "sch.names.fullCompName" (list . $documentsPVCName) -}}
 {{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace $name)) | ternary "false" "true"  }}
-{{ if and (.Values.persistence.enabled) (.Values.appDocumentsPVC.enabled) (empty .Values.appDocumentsPVC.preDefinedDocumentPVCName) (eq $resourceexist "false") }}
+{{ if and (.Values.persistence.enabled) (.Values.appDocumentsPVC.enabled) (empty .Values.appDocumentsPVC.preDefinedDocumentPVCName) (not .Values.appDocumentsPVC.enableVolumeClaimPerPod) (eq $resourceexist "false") }}
 
 # create a persistance volume claim for setup resources
 apiVersion: v1

@@ -4,6 +4,7 @@
 {{- include "sch.config.init" (list . "b2bi.sch.chart.config.values") -}}
 {{- $testName := "test-url" }}
 {{- $resourcesPVCName := .sch.chart.components.appResourcesPVC.name }}
+{{- $ibmsecretexist := ((empty (lookup "v1" "Secret" .Release.Namespace .sch.chart.components.ibmDefaultPullSecret.name)) | ternary "false" "true") }}
 apiVersion: v1
 kind: Pod
 metadata:
@@ -18,7 +19,15 @@ spec:
   hostPID: false
   hostIPC: false
   securityContext:
-{{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 4 }}
+{{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContextTest) | indent 4 }}
+{{- if or (.Values.global.image.pullSecret) (eq $ibmsecretexist "true") }}
+  imagePullSecrets:
+  {{- if .Values.global.image.pullSecret }}
+    - name: {{ .Values.global.image.pullSecret }}
+  {{- else }}
+    - name: "{{ .sch.chart.components.ibmDefaultPullSecret.name }}"
+  {{- end }}
+{{- end }}  
   volumes:
     - name: {{ .sch.chart.components.appResourcesPVC.name  }}
       persistentVolumeClaim:
@@ -38,7 +47,7 @@ spec:
     - name: {{ .sch.chart.components.appResourcesPVC.name  }}
       mountPath: "/ibm/resources"
     securityContext:
-{{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContext) | indent 6 }}
+{{ include "sch.security.securityContext" (list . .sch.chart.containerSecurityContextTest) | indent 6 }}
   imagePullSecrets:
     - name: ibm-entitlement-key
   restartPolicy: Never

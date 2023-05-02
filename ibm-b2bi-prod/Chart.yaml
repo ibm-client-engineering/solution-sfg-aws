@@ -1,7 +1,7 @@
 annotations:
   charts.openshift.io/name: IBM Sterling B2B Integrator
 apiVersion: v2
-appVersion: 6.1.2.1
+appVersion: 6.1.2.2
 dependencies:
 - alias: sch
   name: ibm-sch
@@ -30,9 +30,9 @@ keywords:
 - Automation
 - RHOCP
 - Other
-kubeVersion: '>=v1.23.14-eks-ffeb93d'
+kubeVersion: '>=v1.23.16-eks-48e63af'
 maintainers:
 - name: IBM
 name: ibm-b2bi-prod
 type: application
-version: 2.1.1
+version: 2.1.3

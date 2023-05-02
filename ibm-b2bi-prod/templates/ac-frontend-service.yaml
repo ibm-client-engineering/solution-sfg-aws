@@ -4,6 +4,7 @@
 {{- $ingressEnabled := .Values.ingress.enabled | default false }}
 {{- if gt (.Values.ac.replicaCount|int) 0 }}
 {{- $serviceType := .Values.ac.frontendService.type }}
+{{- $sessionAffinity := .Values.ac.frontendService.sessionAffinity | default "ClientIP" }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -18,10 +19,21 @@ metadata:
 {{ toYaml .Values.ac.frontendService.annotations | indent 4 }}
 {{- end }}
 spec:
+  {{ $effectiveServiceType := "ClusterIP" }}
   {{- if eq $ingressEnabled false }}
-  type: {{ .Values.ac.frontendService.type }}
-  {{- else }}
-  type: ClusterIP
+  {{ $effectiveServiceType = .Values.ac.frontendService.type }}
+  {{- end }}
+  type: {{ $effectiveServiceType }}
+  sessionAffinity: {{ $sessionAffinity }}
+  {{- if not (eq $sessionAffinity "None") }}
+  sessionAffinityConfig:
+  {{- if (eq $sessionAffinity "ClientIP") }}
+    clientIP:
+  {{- end }}
+  {{ toYaml .Values.ac.frontendService.sessionAffinityConfig | indent 6 }}
+  {{- end }}
+  {{- if not (eq $effectiveServiceType "ClusterIP") }}
+  externalTrafficPolicy: {{ .Values.ac.frontendService.externalTrafficPolicy }}
   {{- end }}
   ports:
     - port: {{ .Values.ac.frontendService.ports.http.port }}
@@ -40,7 +52,6 @@ spec:
       nodePort: {{ $port.nodePort }}
       {{- end }}
     {{- end }}
-  sessionAffinity: ClientIP
   selector:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.acServer.name) | indent 4 }}
    {{- if and (eq $serviceType "LoadBalancer") (.Values.ac.frontendService.loadBalancerIP) }}

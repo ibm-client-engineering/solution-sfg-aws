@@ -122,6 +122,8 @@ sch:
         name: "postinstall-patch-ingress-job"
       tlsSetupJob:
         name: "preinstall-tls-setup-job"
+      sap:
+        name: sap
       networkPolicies:
         ingressDenyAll: 
           name: "np-ingress-deny-all" 
@@ -140,8 +142,13 @@ sch:
       myfgPortName: myfg
     labelType: "prefixed"
     metering:
+      {{- if eq (toString .Values.global.licenseType | lower) "non-prod"  }}
+      productID: {{ template "b2bi.metering.nonProductId" . }}
+      productName: {{ template "b2bi.metering.nonProductName" . }}
+      {{- else }}
       productID: {{ template "b2bi.metering.productId" . }}
       productName: {{ template "b2bi.metering.productName" . }}
+      {{- end }}
       productVersion: {{ template "b2bi.metering.productVersion" . }}
       productMetric: {{ template "b2bi.metering.productMetric" . }}
     nonMetering:
@@ -156,12 +163,28 @@ sch:
 	  {{- if .Values.security.fsGroup }}
       fsGroup: {{ .Values.security.fsGroup }}
 	  {{- end }}
+          {{- if .Values.security.fsGroupChangePolicy }}
+      fsGroupChangePolicy: {{ .Values.security.fsGroupChangePolicy }}
+          {{- end }}
 	  {{- if .Values.security.runAsUser }}
       runAsUser: {{ .Values.security.runAsUser }}
 	  {{- end }}
 	  {{- if .Values.security.runAsGroup }}
       runAsGroup: {{ .Values.security.runAsGroup }}
 	  {{- end }}
+    podSecurityContextTest:
+      runAsNonRoot: true
+      {{- if ge (.Capabilities.KubeVersion.Minor|int) 24 }}
+      seccompProfile:
+        type: RuntimeDefault
+      {{- end }}
+      supplementalGroups: {{ .Values.security.supplementalGroups }}
+          {{- if .Values.security.fsGroup }}
+      fsGroup: {{ .Values.security.fsGroup }}
+          {{- end }}
+          {{- if .Values.security.fsGroupChangePolicy }}
+      fsGroupChangePolicy: {{ .Values.security.fsGroupChangePolicy }}
+          {{- end }}
     containerSecurityContext:
       privileged: false
       {{- if .Values.security.runAsUser }}
@@ -175,4 +198,11 @@ sch:
       capabilities:
         drop:
         - ALL     
+    containerSecurityContextTest:
+      privileged: false
+      readOnlyRootFilesystem: false
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
 {{- end -}}

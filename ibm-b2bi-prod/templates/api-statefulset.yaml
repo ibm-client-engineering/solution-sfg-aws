@@ -35,6 +35,9 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         checksum/configprop: {{ include (print $.Template.BasePath "/configmap-properties.yaml") . | sha256sum }}         
     spec:
+      {{- if .Values.setupCfg.terminationGracePeriod }}
+      terminationGracePeriodSeconds: {{ .Values.setupCfg.terminationGracePeriod }}
+      {{- end }}
       serviceAccountName: {{ .Values.serviceAccount.name  | quote }}
       hostNetwork: false
       hostPID: false
@@ -54,12 +57,14 @@ spec:
             claimName: {{ (empty .Values.appLogsPVC.preDefinedLogsPVCName) | ternary (include "sch.names.fullCompName" (list . $logsPVCName) | quote) (.Values.appLogsPVC.preDefinedLogsPVCName | quote) }}
         {{- end }} 
         {{- if .Values.appDocumentsPVC.enabled }}
+        {{- if not .Values.appDocumentsPVC.enableVolumeClaimPerPod }}
         - name: "{{ .sch.chart.components.appDocumentsPVC.name }}"
         {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
             claimName: {{ (empty .Values.appDocumentsPVC.preDefinedDocumentPVCName) | ternary (include "sch.names.fullCompName" (list . $documentsPVCName) | quote) (.Values.appDocumentsPVC.preDefinedDocumentPVCName | quote) }}
         {{- else }}
           emptyDir: {}
+        {{- end }}
         {{- end }}
         {{- end }}
         {{- end }}
@@ -72,15 +77,31 @@ spec:
         # extra configured volumes
         {{- if .Values.persistence.enabled }}
         {{- range $i, $pvc := .Values.api.extraPVCs }}
+        {{- if not $pvc.enableVolumeClaimPerPod }}
+        {{- if ($pvc.predefinedPVCName) }}
+        - name: {{$pvc.predefinedPVCName}}
+          persistentVolumeClaim:
+            claimName: {{ $pvc.predefinedPVCName }}
+        {{- else }}
         - name: {{ $pvc.name }}
           persistentVolumeClaim:
             claimName: {{ include "sch.names.fullCompName" (list $ $pvc.name) | quote }}
         {{- end }}
+        {{- end }}
+        {{- end }}
         {{- range $i, $pvc := .Values.extraPVCs }}
+        {{- if not $pvc.enableVolumeClaimPerPod }}
+        {{- if ($pvc.predefinedPVCName) }}
+        - name: {{$pvc.predefinedPVCName}}
+          persistentVolumeClaim:
+            claimName: {{ $pvc.predefinedPVCName }}
+        {{- else }}
         - name: {{ $pvc.name }}
           persistentVolumeClaim:
             claimName: {{ include "sch.names.fullCompName" (list $ $pvc.name) | quote }}
-        {{- end }}        
+        {{- end }} 
+        {{- end }}
+        {{- end }}       
         {{- end }}
 
         {{- if and (.Values.setupCfg.usessl) (.Values.setupCfg.dbTruststoreSecret) }}
@@ -340,13 +361,23 @@ spec:
               mountPath: {{ .Values.appDocumentsPVC.mountPath | default "/ibm/b2bi/install/documents" }}
             {{- end }}
             {{- range $i, $volumeMount := .Values.api.extraPVCs }}
+            {{- if ($volumeMount.predefinedPVCName) }}
+            - name: {{$volumeMount.predefinedPVCName}}
+              mountPath: {{ $volumeMount.mountPath }}
+            {{- else }}
             - name: {{ $volumeMount.name }}
               mountPath: {{ $volumeMount.mountPath }}
             {{- end }}
+            {{- end }}
             {{- range $i, $volumeMount := .Values.extraPVCs }}
+            {{- if ($volumeMount.predefinedPVCName) }}
+            - name: {{$volumeMount.predefinedPVCName}}
+              mountPath: {{ $volumeMount.mountPath }}
+            {{- else }}
             - name: {{ $volumeMount.name }}
               mountPath: {{ $volumeMount.mountPath }}
-            {{- end }}            
+            {{- end }} 
+            {{- end }}           
             {{ end }}
             - name: configmap-resources-volume
               mountPath: /ibm/resources/setup.cfg
@@ -451,4 +482,39 @@ spec:
       hostAliases:  
 {{- if .Values.api.hostAliases}}
 {{ toYaml .Values.api.hostAliases| indent 8 }}
+{{- end }}
+  volumeClaimTemplates:
+{{- if and (.Values.appDocumentsPVC.enabled) (.Values.appDocumentsPVC.enableVolumeClaimPerPod) }}
+  - metadata:
+      name: {{ .sch.chart.components.appDocumentsPVC.name }}
+    spec:
+      accessModes: [ {{ .Values.appDocumentsPVC.accessMode | quote }} ]
+      storageClassName: {{ .Values.appDocumentsPVC.storageClassName | quote }}
+      resources:
+        requests:
+          storage: {{ .Values.appDocumentsPVC.size | quote }}
+{{- end }}
+{{- range $i, $pvc := .Values.extraPVCs }}
+{{- if ($pvc.enableVolumeClaimPerPod) }}
+  - metadata:
+      name: {{ $pvc.name }}
+    spec:
+      accessModes: [ {{ $pvc.accessMode | quote }} ]
+      storageClassName: {{ $pvc.storageClassName | quote }}
+      resources:
+        requests:
+          storage: {{ $pvc.size | quote }}
+{{- end }}
+{{- end }}
+{{- range $i, $pvc := .Values.api.extraPVCs }}
+{{- if ($pvc.enableVolumeClaimPerPod) }}
+  - metadata:
+      name: {{ $pvc.name }}
+    spec:
+      accessModes: [ {{ $pvc.accessMode | quote }} ]
+      storageClassName: {{ $pvc.storageClassName | quote }}
+      resources:
+        requests:
+          storage: {{ $pvc.size | quote }}
+{{- end }}
 {{- end }}
