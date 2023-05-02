@@ -129,6 +129,16 @@ A function to check for validity of service ports
 {{- if not (or (eq $result "NodePort") (eq $result "LoadBalancer") (eq $result "ClusterIP") (eq $result "ExternalName")) -}}
 {{- fail "frontendService.type is not valid. Valid values are NodePort,LoadBalancer, ClusterIP or ExternalName" -}}
 {{- end -}}
+{{- if .sessionAffinityConfig.timeoutSeconds -}}
+{{- $result := include "integerValidation" .sessionAffinityConfig.timeoutSeconds -}}
+{{- if eq $result "false" -}}
+{{- fail "Provide a valid value for frontendService.sessionAffinityConfig.timeoutSeconds" -}}
+{{- end -}}
+{{- end -}}
+{{- $result := .externalTrafficPolicy -}}
+{{- if not (or (eq $result "Cluster") (eq $result "Local")) -}}
+{{- fail "frontendService.externalTrafficPolicy is not valid. Valid values are Cluster or Local" -}}
+{{- end -}}
 {{- include "servicePortCheck" .ports.http -}}
 {{- if .ports.https }}
 {{- include "servicePortCheck" .ports.https -}}
@@ -138,6 +148,45 @@ A function to check for validity of service ports
 {{- end -}}
 {{- end -}}
 
+
+{{- define "extraPVCvalidation" -}}
+{{- $params := . -}}
+{{- $extraPVC := (index $params 1) -}}
+{{- $releaseNameSpace := (index $params 2) -}}
+{{- range $i, $pvc := $extraPVC }}
+{{- if empty ($pvc.mountPath) -}}
+{{- fail  "extraPVCs mountPath cannot be null" -}}
+{{- end -}}
+{{- $isValid := $pvc.enableVolumeClaimPerPod | toString -}}
+{{- if not ( or (eq $isValid "false") (eq $isValid "true")) -}}
+{{- fail "Please provide a valid value for extraPVC.enableVolumeClaimPerPod. Value can be either true or false." -}}
+{{- end -}}
+{{- if $pvc.enableVolumeClaimPerPod }}
+{{- $accessMode := $pvc.accessMode -}}
+{{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod")) -}}
+{{- fail "The supported values for extraPVCs.accessMode are only ReadWriteOnce or ReadWriteOncePod when extraPVCs.enableVolumeClaimPerPod is enabled" -}}
+{{- end -}}
+{{- end -}}
+{{- if ($pvc.predefinedPVCName) }}
+{{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" $releaseNameSpace $pvc.predefinedPVCName)) | ternary "false" "true"  }}
+{{ if (eq $resourceexist "false") }}
+{{- fail "Error: PVC extraPVCs predefinedPVCName not found in namespace.." -}}
+{{- end -}}
+{{- if ($pvc.enableVolumeClaimPerPod) -}}
+{{- fail "Configuration for extraPVCs preDefinedPVCName is not applicable when extraPVCs.enableVolumeClaimPerPod is enabled." -}}
+{{- end -}}
+{{- else if ($pvc.name) }}
+{{- $accessMode := $pvc.accessMode -}}
+{{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod") (eq $accessMode "ReadOnlyMany") (eq $accessMode "ReadWriteMany") ) -}}
+{{- fail "Please specify extraPVCs accessMode as one of these supported access mode - ReadWriteOnce | ReadOnlyMany | ReadWriteMany | ReadWriteOncePod" -}}
+{{- end -}}
+{{- else }}
+{{- fail "Please specify extraPVCs name or extraPVCs predefinedPVCName" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+
 {{- define "backendServiceCheck" -}}
 {{- $result := include "mandatoryArgumentsCheck" .type -}}
 {{- if eq $result "false" -}}
@@ -146,6 +195,20 @@ A function to check for validity of service ports
 {{- $result := .type -}}
 {{- if not (or (eq $result "NodePort") (eq $result "LoadBalancer") (eq $result "ClusterIP") (eq $result "ExternalName")) -}}
 {{- fail "backendService.type is not valid. Valid values are NodePort,LoadBalancer, ClusterIP or ExternalName" -}}
+{{- end -}}
+{{- $result := .sessionAffinity -}}
+{{- if not (or (eq $result "ClientIP") (eq $result "None")) -}}
+{{- fail "backendService.sessionAffinity is not valid. Valid values are ClientIP or None" -}}
+{{- end -}}
+{{- if (and (eq $result "ClientIP") (.sessionAffinityConfig.timeoutSeconds)) -}}
+{{- $result := include "integerValidation" .sessionAffinityConfig.timeoutSeconds -}}
+{{- if eq $result "false" -}}
+{{- fail "Provide a valid value for backendService.sessionAffinityConfig.timeoutSeconds" -}}
+{{- end -}}
+{{- end -}}
+{{- $result := .externalTrafficPolicy -}}
+{{- if not (or (eq $result "Cluster") (eq $result "Local")) -}}
+{{- fail "backendService.externalTrafficPolicy is not valid. Valid values are Cluster or Local" -}}
 {{- end -}}
 {{- range $i, $port := .ports -}}
 {{- include "servicePortCheck" $port -}}
@@ -412,27 +475,67 @@ Main function to test the input validations
 {{- if eq $resourcesPVCEnabled "true" -}}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 {{/*- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
+=======
+{{- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
+>>>>>>> d9f0e8b (Updated the b2bi helm chart version to 2.1.3)
 {{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appResourcesPVC.preDefinedResourcePVCName)) | ternary "false" "true"  }}
 {{ if (eq $resourceexist "false") }}
 {{- fail "Error: PVC .Values.appResourcesPVC.preDefinedResourcePVCName not found in namespace.." -}}
 {{- end -}}
+<<<<<<< HEAD
 {{- end -*/}}
 >>>>>>> 1185b60 (Added the LoadBalancerSourceRanges to the helm charts. Upgraded the charts to 2.1.3 from 2.1.0. Modified the validation.tpl to remove some ExtraPVC check that was failing incorrectly)
+=======
+{{- end -}}
+>>>>>>> d9f0e8b (Updated the b2bi helm chart version to 2.1.3)
 
-
-{{- $isValid := .Values.appResourcesPVC.accessMode -}}
-{{- if not ( or (eq $isValid "ReadWriteOnce") (eq $isValid "ReadOnlyMany") (eq $isValid "ReadWriteMany") ( not (empty .Values.appResourcesPVC.preDefinedResourcePVCName))) -}}
-{{- fail "Please specify Values.appResourcesPVC.accessMode as one of these supported databases - ReadWriteOnce | ReadOnlyMany | ReadWriteMany" -}}
+{{- $accessMode := .Values.appResourcesPVC.accessMode -}}
+{{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod") (eq $accessMode "ReadOnlyMany") (eq $accessMode "ReadWriteMany") ( not (empty .Values.appResourcesPVC.preDefinedResourcePVCName))) -}}
+{{- fail "Please specify Values.appResourcesPVC.accessMode as one of these supported access mode - ReadWriteOnce | ReadOnlyMany | ReadWriteMany | ReadWriteOncePod" -}}
 {{- end -}}
 
 {{- end -}}
 
+{{- $consoleLogsEnabled := .Values.logs.enableAppLogOnConsole | toString -}}
+{{- if eq $consoleLogsEnabled "false" -}}
+{{- if (.Values.appLogsPVC.preDefinedLogsPVCName) }}
+{{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appLogsPVC.preDefinedLogsPVCName)) | ternary "false" "true"  }}
+{{ if (eq $resourceexist "false") }}
+{{- fail "Error: PVC .Values.appLogsPVC.preDefinedLogsPVCName not found in namespace.." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 
-{{- $isValid := .Values.appLogsPVC.accessMode -}}
-{{- if not ( or (eq $isValid "ReadWriteOnce") (eq $isValid "ReadOnlyMany") (eq $isValid "ReadWriteMany") ( not (empty .Values.appResourcesPVC.preDefinedLogsPVCName))) -}}
-{{- fail "Please specify Values.appLogsPVC.accessMode as one of these supported databases - ReadWriteOnce | ReadOnlyMany | ReadWriteMany" -}}
+{{- $documentsPVCEnabled := .Values.appDocumentsPVC.enabled | toString -}}
+{{- if eq $documentsPVCEnabled "true" -}}
+{{- $isValid := .Values.appDocumentsPVC.enableVolumeClaimPerPod | toString -}}
+{{- if not ( or (eq $isValid "false") (eq $isValid "true")) -}}
+{{- fail "Please provide a valid value for .Values.appDocumentsPVC.enableVolumeClaimPerPod. Value can be either true or false." -}}
+{{- end -}}
+{{- if .Values.appDocumentsPVC.enableVolumeClaimPerPod }}
+{{- $accessMode := .Values.appDocumentsPVC.accessMode -}}
+{{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod")) -}}
+{{- fail "The supported values for Values.appDocumentsPVC.accessMode are only ReadWriteOnce or ReadWriteOncePod when .Values.appDocumentsPVC.enableVolumeClaimPerPod is enabled" -}}
+{{- end -}}
+{{- end -}}
+
+{{- if (.Values.appDocumentsPVC.preDefinedDocumentPVCName) }}
+{{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appDocumentsPVC.preDefinedDocumentPVCName)) | ternary "false" "true"  }}
+{{ if (eq $resourceexist "false") }}
+{{- fail "Error: PVC .Values.appDocumentsPVC.preDefinedDocumentPVCName not found in namespace.." -}}
+{{- end -}}
+{{- if (.Values.appDocumentsPVC.enableVolumeClaimPerPod) -}}
+{{- fail "Configuration for .Values.appDocumentsPVC.preDefinedDocumentPVCName is not applicable when .Values.appDocumentsPVC.enableVolumeClaimPerPod is enabled." -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- $accessMode := .Values.appLogsPVC.accessMode -}}
+{{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod") (eq $accessMode "ReadOnlyMany") (eq $accessMode "ReadWriteMany") ( not (empty .Values.appResourcesPVC.preDefinedLogsPVCName))) -}}
+{{- fail "Please specify Values.appLogsPVC.accessMode as one of these supported access modes - ReadWriteOnce | ReadOnlyMany | ReadWriteMany | ReadWriteOncePod" -}}
 {{- end -}}
 		
 {{- if .Values.security.supplementalGroups -}}
@@ -448,6 +551,13 @@ Main function to test the input validations
 {{- $isValid := include "userOrGroupNameIDValidator" .Values.security.fsGroup -}}
 {{- if eq $isValid "false" -}}
 {{- fail "Values.security.fsGroup is invalid. Either provide a numeric value for group ID or follow the pattern ^[a-z][-a-z0-9]*$ to provide valid group name." -}}
+{{- end }}
+{{- end -}}
+
+{{- if .Values.security.fsGroupChangePolicy -}}
+{{- $fsGroupChangePolicy := .Values.security.fsGroupChangePolicy -}}
+{{- if not ( or (eq $fsGroupChangePolicy "OnRootMismatch") (eq $fsGroupChangePolicy "Always") ) -}}
+{{- fail "Please specify valid value for Values.security.fsGroupChangePolicy. Value can be OnRootMismatch | Always" -}}
 {{- end }}
 {{- end -}}
 
@@ -675,10 +785,10 @@ Starting Validation of setup configuration properties.
 {{- fail "Please specify the smtpHost." -}}
 {{- end -}}
 
-{{- if .Values.setupCfg.softStopTimeout -}}
-	{{- $isValid := include "integerValidation" .Values.setupCfg.softStopTimeout -}}
+{{- if .Values.setupCfg.terminationGracePeriod -}}
+	{{- $isValid := include "integerValidation" .Values.setupCfg.terminationGracePeriod -}}
 	{{- if eq $isValid "false" -}}
-	{{- fail "Invalid value for softStopTimeout" -}}
+	{{- fail "Invalid value for terminationGracePeriod" -}}
 	{{- end -}}
 {{- end -}}
 
@@ -773,6 +883,24 @@ Starting Validation of setup configuration properties.
 {{- $isValid := .Values.setupCfg.useSslForRmi | toString -}}
 {{- if not ( or (eq $isValid "false") (eq $isValid "true")) -}}
 {{- fail "Please provide value for Values.setupCfg.useSslForRmi. Value can be either false or true." -}}
+{{- end -}}
+
+{{- if .Values.setupCfg.sapSncSecretName -}}
+
+	{{- $result := include "mandatoryArgumentsCheck" .Values.setupCfg.sapSncLibVendorName -}}
+	{{- if eq $result "false" -}}
+	{{- fail ".Values.setupCfg.sapSncLibVendorName cannot be empty when sapSncSecretName is configured." -}}
+	{{- end -}}
+
+	{{- $result := include "mandatoryArgumentsCheck" .Values.setupCfg.sapSncLibVersion -}}
+	{{- if eq $result "false" -}}
+	{{- fail ".Values.setupCfg.sapSncLibVersion cannot be empty when sapSncSecretName is configured." -}}
+	{{- end -}}
+
+	{{- $result := include "mandatoryArgumentsCheck" .Values.setupCfg.sapSncLibName -}}
+	{{- if eq $result "false" -}}
+	{{- fail ".Values.setupCfg.sapSncLibName cannot be empty when sapSncSecretName is configured." -}}
+	{{- end -}}
 {{- end -}}
 
 {{- $isValid := .Values.purge.enabled | toString -}}
@@ -1077,4 +1205,15 @@ Empty values will be passed.
 	
 {{- end -}}
 	
+
+{{- include "extraPVCvalidation" (list . .Values.extraPVCs .Release.Namespace) -}}
+{{- include "extraPVCvalidation" (list . .Values.asi.extraPVCs .Release.Namespace) -}}
+{{- include "extraPVCvalidation" (list . .Values.ac.extraPVCs .Release.Namespace) -}}
+{{- include "extraPVCvalidation" (list . .Values.api.extraPVCs .Release.Namespace) -}}
+
+{{- $typeStr :=  .Values.global.licenseType | toString | lower -}}
+{{- if not ( or (eq $typeStr "prod") (eq $typeStr "non-prod")) -}}
+{{- fail "Configuration Error: Please provide a valid value for parameter licenseType. Value can be either prod or non-prod." -}}
+{{- end -}}
+
 {{- end -}}

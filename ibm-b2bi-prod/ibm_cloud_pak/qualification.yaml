@@ -17,6 +17,6 @@ prereqs:
         name: Administrator
   k8sDistros:
     kubernetes:
-      semver: ">=1.21"
+      semver: ">=1.23"
     openshift:
-      semver: ">=1.21"
+      semver: ">=1.23"
