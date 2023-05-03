@@ -411,6 +411,15 @@ Main function to test the input validations
 {{- $resourcesPVCEnabled := .Values.appResourcesPVC.enabled | toString -}}
 {{- if eq $resourcesPVCEnabled "true" -}}
 
+<<<<<<< HEAD
+=======
+{{/*- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
+{{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appResourcesPVC.preDefinedResourcePVCName)) | ternary "false" "true"  }}
+{{ if (eq $resourceexist "false") }}
+{{- fail "Error: PVC .Values.appResourcesPVC.preDefinedResourcePVCName not found in namespace.." -}}
+{{- end -}}
+{{- end -*/}}
+>>>>>>> 1185b60 (Added the LoadBalancerSourceRanges to the helm charts. Upgraded the charts to 2.1.3 from 2.1.0. Modified the validation.tpl to remove some ExtraPVC check that was failing incorrectly)
 
 
 {{- $isValid := .Values.appResourcesPVC.accessMode -}}

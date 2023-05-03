@@ -46,6 +46,12 @@ spec:
     {{- end }}
     {{- end }}
     {{- end }}
+    {{- if .Values.asi.backendService.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range $group := .Values.asi.backendService.loadBalancerSourceRanges }}
+    - {{ $group -}}
+  {{ end }}
+  {{- end }}
   selector:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.asiServer.name) | indent 4 }} 
     {{- if and (eq $serviceType "LoadBalancer") (.Values.asi.backendService.loadBalancerIP) }}    
