@@ -475,8 +475,6 @@ Main function to test the input validations
 {{- if eq $resourcesPVCEnabled "true" -}}
 
 {{/*- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
-=======
-{{- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
 {{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appResourcesPVC.preDefinedResourcePVCName)) | ternary "false" "true"  }}
 {{ if (eq $resourceexist "false") }}
 {{- fail "Error: PVC .Values.appResourcesPVC.preDefinedResourcePVCName not found in namespace.." -}}
