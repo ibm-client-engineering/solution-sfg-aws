@@ -10,7 +10,7 @@ title: Integrate
 
 The following adapters can be used with Sterling File Gateway:
 
-| Protocol | Adapter | 
+| Protocol | Adapter |
 |----------|---------|
 | FTP, FTPS | FTP Server adapter |
 | FTP, FTPS |	FTP Client adapter and services |
@@ -20,10 +20,10 @@ The following adapters can be used with Sterling File Gateway:
 | PGP |	Command Line Adapter 2 |
 | HTTP, HTTPS, WebDAV (Requires extensibility. See Add Custom Protocols.) |	HTTP Server adapter |
 | HTTP, HTTPS, WebDAV (Requires extensibility. See Add Custom Protocols.) |	HTTP Client adapter and services |
-| WebSphere® MQ File Transfer Edition |	
+| WebSphere® MQ File Transfer Edition |
 - WebSphere MQ File Transfer Edition Agent adapter
 - WebSphere MQ Suite Async adapter
-- WebSphere MQ File Transfer Edition Create Transfer service 
+- WebSphere MQ File Transfer Edition Create Transfer service
 - FTP Server Adapter |
 
 
@@ -37,7 +37,7 @@ Login to the dashboard as `fg_sysadmin`:
 
 https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaws.com/dashboard
 
-From the main menu: 
+From the main menu:
 1. Select Deployment > Services > Configuration.
 2. Select and configure the adapters you require.
 
@@ -62,7 +62,7 @@ Select **Participants > Groups** to create a group named `Group1`.
 Log out of `filegateway` and log back in as `fg_provisioner`
 
 Create two partners with the following values:
-Select **Participants > Partners** 
+Select **Participants > Partners**
 
 |Field| Value For First Partner| Value For Second Partner|
 |-----|------|-----|
@@ -187,7 +187,7 @@ You should see under Advanced Stats that the service in running and enabled. Cli
 
 ### Cluster configuration to allow inbound access
 
-So because we enabled the adapter to the AC node, we would need to add the extra ports to the overrides yaml for that service. 
+So because we enabled the adapter to the AC node, we would need to add the extra ports to the overrides yaml for that service.
 We are also listening to port 50039
 
 So we update our AC overrides with the following:
@@ -202,7 +202,7 @@ ac:
   frontendService:
     type: ClusterIP
     ports:
-      http: 
+      http:
         name: http
         port: 35004
         targetPort: http
@@ -214,9 +214,9 @@ ac:
         targetPort: 50039
         nodePort: 50039
         protocol: TCP
-    loadBalancerIP:  
-    annotations: {}  
-      
+    loadBalancerIP:
+    annotations: {}
+
   backendService:
     type: LoadBalancer
     ports:
@@ -236,8 +236,8 @@ ac:
         targetPortRange: 30501-30510
         nodePortRange: 30501-30510
         protocol: TCP
-    loadBalancerIP:  
-    annotations: {} 
+    loadBalancerIP:
+    annotations: {}
 ```
 
 Let's run a helm upgrade after updating our overrides:
@@ -264,7 +264,7 @@ This key is not known by any other names
 Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 Warning: Permanently added '[a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com]:50039' (RSA) to the list of known hosts.
 SSH Server supporting SFTP and SCP
-partner2@a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com's password: 
+partner2@a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com's password:
 Connected to a3185b1737b284bcea6584859ea689e3-2046710660.us-east-1.elb.amazonaws.com.
 sftp>
 

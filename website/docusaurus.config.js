@@ -4,116 +4,193 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
-/** @type {import('@docusaurus/types').Config} */
-const config = {
+async function createconfig() {
+  const { remarkKroki } = await import("remark-kroki");
 
-  title: 'IBM Client Engineering',
-  tagline: 'Build Faster. Together.',
-  favicon: 'img/favicon.ico',
+  /** @type {import('@docusaurus/types').Config} */
+  const config = {
 
-  // Set the production url of your site here
-  url: 'https://githubprojectname/',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/',
+    markdown: {
+      mermaid: true,
+    },
+    themes: ['@docusaurus/theme-mermaid', '@docusaurus/theme-live-codeblock'],
+    title: 'IBM Client Engineering',
+    tagline: 'Build Faster. Together.',
+    favicon: 'img/favicon.ico',
 
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'ibm-client-engineering', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
-
-  onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
-
-  // ...
-  plugins: [require.resolve("@cmfcmf/docusaurus-search-local")],
-
-  // or, if you want to specify options
+    // Set the production url of your site here
+    url: 'https://ibm-client-engineering.github.io',
+    // Set the /<baseUrl>/ pathname under which your site is served
+    // For GitHub pages deployment, it is often '/<projectName>/'
+    baseUrl: '/solution-sfg-aws/',
 
 
-  // Even if you don't use internalization, you can use this field to set useful
-  // metadata like html lang. For example, if your site is Chinese, you may want
-  // to replace "en" with "zh-Hans".
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
-  },
+    // GitHub pages deployment config.
+    // If you aren't using GitHub pages, you don't need these.
+    organizationName: 'ibm-client-engineering', // Usually your GitHub org/user name.
+    projectName: 'solution-sfg-aws', // Usually your repo name.
 
-  presets: [
-    [
-      'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
-        docs: {
-          routeBasePath: '/',
-          sidebarPath: require.resolve('./sidebars.js'),
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+    onBrokenLinks: 'throw',
+    onBrokenMarkdownLinks: 'warn',
+
+    // ...
+    plugins: [
+      [
+        require.resolve('@cmfcmf/docusaurus-search-local'), {
+
         },
-        theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+      ],
+           [
+        require.resolve('docusaurus-plugin-image-zoom'), {
+        },
+      ],
+      ['@docusaurus/plugin-sitemap',
+        {
+          changefreq: 'hourly',
+          id: 'site',
+          filename: 'sitemap.xml',
+          priority: 0.5
+        },
+      ],
+      [
+        '@docusaurus/plugin-google-gtag',
+        {
+          trackingID: 'G-GB0XWXF3GE',
+          anonymizeIP: true,
+        },
+      ],
+    ],
+
+    // or, if you want to specify options
+
+
+    // Even if you don't use internalization, you can use this field to set useful
+    // metadata like html lang. For example, if your site is Chinese, you may want
+    // to replace "en" with "zh-Hans".
+    i18n: {
+      defaultLocale: 'en',
+      locales: ['en'],
+    },
+
+    presets: [
+      [
+        'classic',
+        /** @type {import('@docusaurus/preset-classic').Options} */
+        ({
+          docs: {
+            remarkPlugins: [[remarkKroki, { server: "https://kroki.io/" }]],
+            routeBasePath: '/',
+            sidebarPath: require.resolve('./sidebars.js'),
+            // Please change this to your repo.
+            // Remove this to remove the "edit this page" links.
+            editUrl:
+              'https://github.com/ibm-client-engineering/solution-sfg-aws/tree/main/packages/create-docusaurus/templates/shared/',
+          },
+          theme: {
+            customCss: require.resolve('./src/css/custom.css'),
+          },
+          blog: {
+            path: 'flight-logs',
+            // Simple use-case: string editUrl
+            // editUrl: 'https://github.com/facebook/docusaurus/edit/main/website/',
+            // Advanced use-case: functional editUrl
+            editUrl: ({ locale, blogDirPath, blogPath, permalink }) =>
+              `https://github.com/ibm-client-engineering/solution-sfg-aws/edit/main/website/${blogDirPath}/${blogPath}`,
+            blogTitle: 'Journey Log',
+            blogSidebarTitle: 'All our logs',
+            postsPerPage: 10,
+            remarkPlugins: [],
+            rehypePlugins: [],
+          }
+        }),
+      ],
+    ],
+
+    themeConfig:
+      /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
+      ({
+        metadata: [{ name: 'keywords', content: 'ibm client engineering, open solutions library,  sfg, eks, aws, cp4ba, sfg on aws eks' }],
+        mermaid: {
+          theme: { light: 'neutral', dark: 'dark' },
+        },
+        // Replace with your project's social card
+        image: 'img/docusaurus-social-card.jpg',
+        tableOfContents: {
+          minHeadingLevel: 2,
+          maxHeadingLevel: 5,
+        },
+        zoom: {
+          selector: '.markdown :not(a) > img',
+          background: {
+            light: 'rgb(255, 255, 255)',
+            dark: 'rgb(50, 50, 50)'
+          },
+          config: {
+            // options you can specify via https://github.com/francoischalifour/medium-zoom#usage
+          },
+        },
+        navbar: {
+          title: '| IBM Sterling File Gateway on AWS EKS',
+          logo: {
+            alt: 'My Site Logo',
+            src: 'img/logo.svg',
+            srcDark: 'img/logo-dark.svg',
+            width: 200,
+            height: 200,
+          },
+          items: [
+            // {
+            //   type: 'doc',
+            //   docId: 'intro',
+            //   position: 'left',
+            //   label: 'Section',
+            // },
+            {to: '/', label: 'Flight Path', position: 'right'},
+            {to: 'blog', label: 'Flight Logs', position: 'right'},
+            {
+              href: 'https://github.com/ibm-client-engineering/solution-sfg-aws',
+              className: "header-github-link",
+              position: 'right',
+            },
+          ],
+        },
+        footer: {
+          logo: {
+              alt: 'IBM Logo',
+              src: 'https://upload.wikimedia.org/wikipedia/commons/5/51/IBM_logo.svg',
+              href: 'https://ibm.com',
+              height: 150,
+              width: 150,
+
+          },
+          // style: 'dark',
+          links: [
+            {
+              title: 'Explore',
+              items: [
+                {
+                  label: 'IBM',
+                  to: 'https://www.ibm.com/',
+                },
+                {
+                  label: 'IBM Client Engineering - Open Solutions Library',
+                  to: 'https://www.ibm.com/client-engineering',
+                },
+              ],
+
+            }
+
+          ]
+        },
+        prism: {
+          theme: require('prism-react-renderer/themes/oceanicNext'),
+          darkTheme: require('prism-react-renderer/themes/oceanicNext'),
         },
       }),
-    ],
-  ],
+  };
 
-  themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
-    ({
-      // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
-      navbar: {
-        title: '| My Solution',
-        logo: {
-          alt: 'My Site Logo',
-          src: 'img/logo.svg',
-          srcDark: 'img/logo-dark.svg',
-          width: 200,
-          height: 200,
-        },
-        items: [
-          // {
-          //   type: 'doc',
-          //   docId: 'intro',
-          //   position: 'left',
-          //   label: 'Section',
-          // },
+  return config;
 
-          {
-            href: 'repo-url',
-            className: "header-github-link",
-            position: 'right',
-          },
-        ],
-      },
-      footer: {
-        // style: 'dark',
-        links: [
-          {
-            title: 'Links',
-            items: [
-              {
-                label: 'IBM',
-                to: 'https://www.ibm.com/',
-              },
-              {
-                label: 'IBM Client Engineering',
-                to: 'https://www.ibm.com/client-engineering',
-              },
-            ],
-          }
+}
 
-        ]
-      },
-      prism: {
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
-      },
-    }),
-};
-
-module.exports = config;
-
-
+module.exports = createconfig;

@@ -163,7 +163,7 @@ sed -i "s/^kubeVersion:.*/kubeVersion: '>=v1.23.14-eks-ffeb93d'/" Chart.yaml
 
 ## Sterling Override File
 
-This is valid for installing the Sterling B2BI product. 
+This is valid for installing the Sterling B2BI product.
 
 [sterling-overrides-b2bi.yaml](../../../overrides/sterling-b2bi-values.yaml)
 
@@ -182,7 +182,7 @@ Add the labels that would be applied to each pod
 ```
   # for pod Affinity and podAntiAffinity
   extraLabels:
-    customlabelname: customlabelvalue 
+    customlabelname: customlabelvalue
 ```
 
 :::
@@ -202,7 +202,7 @@ In our example, we are on AWS so our ingress host entries look like the followin
         secretName: sterling-b2bi-b2bi-ac-frontend-svc
       extraPaths: []
     external:
-      host: "*.elb.us-east-1.amazonaws.com" 
+      host: "*.elb.us-east-1.amazonaws.com"
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-ac-frontend-svc
