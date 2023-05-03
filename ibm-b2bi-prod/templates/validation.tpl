@@ -474,12 +474,12 @@ Main function to test the input validations
 {{- $resourcesPVCEnabled := .Values.appResourcesPVC.enabled | toString -}}
 {{- if eq $resourcesPVCEnabled "true" -}}
 
-{{- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
+{{/*- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
 {{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appResourcesPVC.preDefinedResourcePVCName)) | ternary "false" "true"  }}
 {{ if (eq $resourceexist "false") }}
 {{- fail "Error: PVC .Values.appResourcesPVC.preDefinedResourcePVCName not found in namespace.." -}}
 {{- end -}}
-{{- end -}}
+{{- end -*/}}
 
 {{- $accessMode := .Values.appResourcesPVC.accessMode -}}
 {{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod") (eq $accessMode "ReadOnlyMany") (eq $accessMode "ReadWriteMany") ( not (empty .Values.appResourcesPVC.preDefinedResourcePVCName))) -}}

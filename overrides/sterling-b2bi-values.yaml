@@ -284,6 +284,9 @@ asi:
         nodePortRange: 30301-30305
         protocol: TCP
     loadBalancerIP:  
+#    loadBalancerSourceRanges:
+#      - 10.10.10.0/24
+#      - 10.10.20.0/24
     annotations: {}
       
   livenessProbe:
@@ -450,6 +453,9 @@ ac:
         nodePortRange: 30501-30510
         protocol: TCP
     loadBalancerIP:  
+#    loadBalancerSourceRanges:
+#      - 10.10.10.0/24
+#      - 10.10.20.0/24
     annotations: {} 
 
   livenessProbe:

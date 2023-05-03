@@ -383,6 +383,7 @@ asi:
       # nodePort: 30100
       # protocol: TCP
     loadBalancerIP:  
+    loadBalancerSourceRanges: []
     annotations: {}  
   
   backendService:
@@ -700,6 +701,7 @@ ac:
       #  nodePortRange: 30501-30600
       #  protocol: TCP
     loadBalancerIP:  
+    loadBalancerSourceRanges: []
     annotations: {} 
 
   livenessProbe:
