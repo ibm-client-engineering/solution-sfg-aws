@@ -27,9 +27,6 @@ spec:
           name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.extPurge.name) | quote }}
           labels:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.extPurge.name) | indent 12 }}
-{{- if .Values.purge.image.extraLabels }}
-{{ toYaml .Values.purge.image.extraLabels | indent 12 }}
-{{- end }}
           annotations:
 {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "ext-purge") | indent 12 }}
             checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}        
@@ -38,10 +35,6 @@ spec:
           hostNetwork: false
           hostPID: false
           hostIPC: false
-          {{- if .Values.purge.image.pullSecret }}
-          imagePullSecrets:
-            - name: {{ .Values.purge.image.pullSecret }}
-          {{- end }}
           securityContext:
 {{ include "sch.security.securityContext" (list . .sch.chart.podSecurityContext) | indent 12 }}
           volumes:
@@ -89,6 +82,16 @@ spec:
             - name: resourcesdir
               emptyDir: {}
             {{- end }}
+          {{- if or (.Values.purge.image.pullSecret) (.Values.global.image.pullSecret) (eq $ibmsecretexist "true") }}
+          imagePullSecrets:
+          {{- if .Values.purge.image.pullSecret }}
+            - name: {{ .Values.purge.image.pullSecret }}
+          {{- else if .Values.global.image.pullSecret}}
+            - name: {{ .Values.global.image.pullSecret }}
+          {{- else }}
+            - name: "{{ .sch.chart.components.ibmDefaultPullSecret.name }}"
+          {{- end }}
+          {{- end }}
           {{- if .Values.resourcesInit.enabled}}
           initContainers:
           - name: "resources-init"

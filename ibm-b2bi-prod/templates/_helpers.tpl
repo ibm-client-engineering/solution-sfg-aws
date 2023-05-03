@@ -49,10 +49,24 @@ Create productID, product name, version, productMetric, productChargedContainers
 {{- end -}}
 {{- end -}}
 {{- end -}}
+{{- define "b2bi.metering.nonProductName" -}}
+{{ range ( .Files.Lines "product.info" ) -}}
+{{- if regexMatch "^nonProductName=.*" . -}}
+{{- substr 15 (len .) . -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- define "b2bi.metering.productId" -}}
 {{ range ( .Files.Lines "product.info" ) -}}
 {{- if regexMatch "^productId=.*" . -}}
 {{- substr 10 (len .) . -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- define "b2bi.metering.nonProductId" -}}
+{{ range ( .Files.Lines "product.info" ) -}}
+{{- if regexMatch "^nonProductId=.*" . -}}
+{{- substr 13 (len .) . -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

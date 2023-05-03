@@ -1,4 +1,4 @@
-# What's new in Helm Charts Version 2.1.0 for IBM Sterling B2B Integrator Enterprise Edition v6.1.2.1
+# What's new in Helm Charts Version 2.1.3 for IBM Sterling B2B Integrator Enterprise Edition v6.1.2.2
 * Support for PowerLE (ppc64le) architecture
 * Separate container image for database setup job
 * Support for configuring init container for external resources like db driver jar, standards jar, seas integration jars and so on.
@@ -48,3 +48,5 @@ Please refer prerequisites section from README.md
 | 2.0.7   | July 07, 2022 | >=1.17 | N  | iFix release upgrade for IBM Sterling B2B Integrator Certified Containers | N |
 | 2.1.0   | Sep 30, 2022  | >=1.21 | N | Mod release upgrade for IBM Sterling B2B Integrator Certified Containers | Y |
 | 2.1.1   | Dec 16, 2022  | >=1.21 | N | Fix pack release upgrade for IBM Sterling B2B Integrator Certified Containers | Y |
+| 2.1.2   | Mar 03, 2023  | >=1.23 | N | Fix pack release upgrade for IBM Sterling B2B Integrator Certified Containers | Y |
+| 2.1.3   | Mar 27, 2023  | >=1.23 | N | Fix pack release upgrade for IBM Sterling B2B Integrator Certified Containers | Y |

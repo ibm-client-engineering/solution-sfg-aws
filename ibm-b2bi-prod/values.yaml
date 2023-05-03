@@ -9,12 +9,15 @@ global:
   ## B2BI @ https://ibm.biz/BdPzHS
   ## SFG  @ https://ibm.biz/BdPzHv
   license: false
+  # Specify the license edition as per license agreement. Valid value is prod or non-prod for Production and 
+  # Non-production respectively. Remember that this parameter is crucial for IBM Licensing and Metering Service
+  licenseType: "prod"
   image:
     repository: "cp.icr.io/cp/ibm-b2bi/b2bi"
   # Provide the tag value in double quotes
-    tag: "6.1.2.1"
+    tag: "6.1.2.2"
   # If digest is specified, it takes precedence over tag
-    digest: sha256:7426e3f8d935f28135b3f2b9cd5bc653105af9609606da967cb1cf70ca0b49de
+    digest: sha256:4199ccb92349366fa5debbc7d4bccff9e56edaf0b22fa473e2040baedaa0acc8
     pullPolicy: IfNotPresent
     pullSecret: ""
   networkPolicies:
@@ -82,8 +85,8 @@ resourcesInit:
   image:
     repository: "cp.icr.io/cp/ibm-b2bi"
     name: "b2bi-resources"
-    tag: "6.1.2.1"
-    digest: sha256:660f8b8a48985d2981dc1bb31b9667aabfe4b8829221a8e48e64e3de01eaed08
+    tag: "6.1.2.2"
+    digest: sha256:1d9045511c1203e6d6d25ed32c700dfca230076412915857c2c40b1409151b7c
     pullPolicy: "IfNotPresent"
   command:
 
@@ -119,6 +122,7 @@ appDocumentsPVC:
     value: "documents"
   accessMode: ReadWriteMany
   size: 500Mi
+  enableVolumeClaimPerPod: false
   preDefinedDocumentPVCName: 
 
 extraPVCs: []
@@ -130,10 +134,13 @@ extraPVCs: []
   #  accessMode:
   #  size:
   #  mountPath:
+  #  enableVolumeClaimPerPod: false
+  #  predefinedPVCName:
 
 security:
   supplementalGroups: [65534]
-  fsGroup: 
+  fsGroup:
+  fsGroupChangePolicy: "OnRootMismatch"
   runAsUser:
   runAsGroup: 
 
@@ -149,9 +156,9 @@ dataSetup:
   image:
     repository: "cp.icr.io/cp/ibm-b2bi/b2bi-dbsetup"
     # Provide the tag value in double quotes
-    tag: "6.1.2.1"
+    tag: "6.1.2.2"
      # If digest is specified, it takes precedence over tag
-    digest: sha256:d90c1f4a0d74a69fb00aa52a55540a5780d2d6d48867b41f31a647fea3be1f46
+    digest: sha256:ff279b7df12a22a1773753c8d03a1e32fb5ab8395b94c203dc3fa599e4184551
     pullPolicy: IfNotPresent
     pullSecret: ""
 
@@ -237,8 +244,8 @@ setupCfg:
   # Provide the SMTP host details  
   smtpHost:
 
-  #Provide the soft stop timeout. Only numeric value is accepted.
-  softStopTimeout:
+  #Provide the termination grace period in seconds for containers. Only numeric value is accepted.
+  terminationGracePeriod: 30
 
   #WMQ
   #JMS properties are optional if jmsVendor is empty
@@ -302,11 +309,21 @@ setupCfg:
   # restartCluster can be set to true to restart the application cluster by cleaning up all previous node entries, locks and set the schedules to node1.
   restartCluster: false
 
-  #Enable SSL over RMI calls
+  # Enable SSL over RMI calls
   useSslForRmi: true
 
   # Name of the RMI Secret if available.
   rmiTlsSecretName:
+
+  # SAP SNC configurations
+  # Name of the secret holding SAP SNC PSE file and password along with the sapgenpse utility
+  sapSncSecretName:
+  # SAP SNC library vendor name. This is same as the vendor name configured on customization UI for the SAP SNC library.
+  sapSncLibVendorName:
+  # SAP SNC library version. Specify the value in quotes. This is same as the vendor version configured on customization UI for the SAP SNC library.
+  sapSncLibVersion:
+  # SAP SNC library name. This is same as the native library file name uploaded on customization UI for the SAP SNC library.
+  sapSncLibName:  
 
 asi:
   replicaCount: 1
@@ -318,6 +335,16 @@ asi:
     
   frontendService:
     type: ClusterIP
+    #by default sessionAffinity is configured to ClientIP
+    #override session affinity timeout configuration
+    sessionAffinityConfig:
+      timeoutSeconds: 10800
+     #specify any additional configuration applicable for the specified sessionAffinity option
+     # property1: value1
+     # property2: value2
+
+    # Supported values are "Cluster" & "Local". Default is "Cluster".
+    externalTrafficPolicy: Cluster
     ports:
       http: 
         name: http
@@ -356,10 +383,22 @@ asi:
       # nodePort: 30100
       # protocol: TCP
     loadBalancerIP:  
+    loadBalancerSourceRanges: []
     annotations: {}  
   
   backendService:
     type: LoadBalancer
+    # Supported values are "ClientIP" & "None". Default is "None".
+    sessionAffinity: None
+    #override session affinity timeout configuration (applicable when sessionAffinity is configured other than "None")
+    sessionAffinityConfig:
+      timeoutSeconds: 10800
+     #specify any additional configuration applicable for the specified sessionAffinity option
+     # property1: value1
+     # property2: value2
+
+    # Supported values are "Cluster" & "Local". Default is "Cluster".
+    externalTrafficPolicy: Cluster
     ports: []
       #- name: adapter-1
       #  port: 30201
@@ -439,6 +478,8 @@ asi:
     #  accessMode:
     #  size:
     #  mountPath:
+    #  enableVolumeClaimPerPod: false
+    #  predefinedPVCName:
 
   ## Additional init containers, e. g. for providing custom themes
   extraInitContainers: []
@@ -608,6 +649,16 @@ ac:
     
   frontendService:
     type: ClusterIP
+    #by default sessionAffinity is configured to ClientIP
+    #override session affinity timeout configuration
+    sessionAffinityConfig:
+      timeoutSeconds: 10800
+     #specify any additional configuration applicable for the specified sessionAffinity option
+     # property1: value1
+     # property2: value2
+    
+    # Supported values are "Cluster" & "Local". Default is "Cluster".
+    externalTrafficPolicy: Cluster
     ports:
       http: 
         name: http
@@ -626,6 +677,17 @@ ac:
       
   backendService:
     type: LoadBalancer
+    # Supported values are "ClientIP" & "None". Default is "None".
+    sessionAffinity: None
+    #override session affinity timeout configuration (applicable when sessionAffinity is configured other than "None")
+    sessionAffinityConfig:
+      timeoutSeconds: 10800
+     #specify any additional configuration applicable for the specified sessionAffinity option
+     # property1: value1
+     # property2: value2
+
+    # Supported values are "Cluster" & "Local". Default is "Cluster".
+    externalTrafficPolicy: Cluster
     ports: []
       #- name: adapter-1
       #  port: 30401
@@ -639,6 +701,7 @@ ac:
       #  nodePortRange: 30501-30600
       #  protocol: TCP
     loadBalancerIP:  
+    loadBalancerSourceRanges: []
     annotations: {} 
 
   livenessProbe:
@@ -691,6 +754,8 @@ ac:
     #  accessMode:
     #  size:
     #  mountPath:
+    #  enableVolumeClaimPerPod: false
+    #  predefinedPVCName:
   
   ## Additional init containers, e. g. for providing custom themes
   extraInitContainers: []
@@ -848,6 +913,16 @@ api:
     
   frontendService:
     type: ClusterIP
+    #by default sessionAffinity is configured to ClientIP
+    #override session affinity timeout configuration
+    sessionAffinityConfig:
+      timeoutSeconds: 10800
+     #specify any additional configuration applicable for the specified sessionAffinity option
+     # property1: value1
+     # property2: value2
+
+    # Supported values are "Cluster" & "Local". Default is "Cluster".
+    externalTrafficPolicy: Cluster
     ports:
       http:
         name: http
@@ -909,6 +984,8 @@ api:
     #  accessMode:
     #  size:
     #  mountPath:
+    #  enableVolumeClaimPerPod: false
+    #  predefinedPVCName:
 
   ## Additional init containers, e. g. for providing custom themes
   extraInitContainers: []
@@ -1053,19 +1130,17 @@ test:
   image:
     repository: 'cp.icr.io/cp'
     name: 'opencontent-common-utils'
-    tag: '1.1.54'
-    digest: sha256:9bfcc7b58d503c45097dae5d35577b45bb8ffb56e8f9244e8cd3574dd36daf4c
+    tag: '1.1.60'
+    digest: sha256:6a514b98fe8f006d00a4bbbcc87241d900ac6a6f28f035d89a61a47aa7af25c7
     pullPolicy: 'IfNotPresent'
-    pullSecret: 
-    extraLabels: {}
 
 purge:
   enabled: true
   image:
     repository: "cp.icr.io/cp/ibm-b2bi/b2bi-purge"
   # Provide the tag value in double quotes
-    tag: "6.1.2.1"
-    digest: sha256:b3a8b080fb9640796879105d9c6544a0630a4d2a0e3dc65cc84ac690e9522ba5
+    tag: "6.1.2.2"
+    digest: sha256:82af150873315122c804ec06ea356f7db186732f73ec00338076746202d84d25
     pullPolicy: IfNotPresent
     pullSecret: ""
   # Provide a schedule for the purge job as a cron expression. For example "0 0 * * *" will run the purge job at 00:00 every day
