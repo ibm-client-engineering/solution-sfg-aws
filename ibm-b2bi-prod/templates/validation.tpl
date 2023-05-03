@@ -474,23 +474,14 @@ Main function to test the input validations
 {{- $resourcesPVCEnabled := .Values.appResourcesPVC.enabled | toString -}}
 {{- if eq $resourcesPVCEnabled "true" -}}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 {{/*- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
 =======
 {{- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
->>>>>>> d9f0e8b (Updated the b2bi helm chart version to 2.1.3)
 {{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appResourcesPVC.preDefinedResourcePVCName)) | ternary "false" "true"  }}
 {{ if (eq $resourceexist "false") }}
 {{- fail "Error: PVC .Values.appResourcesPVC.preDefinedResourcePVCName not found in namespace.." -}}
 {{- end -}}
-<<<<<<< HEAD
 {{- end -*/}}
->>>>>>> 1185b60 (Added the LoadBalancerSourceRanges to the helm charts. Upgraded the charts to 2.1.3 from 2.1.0. Modified the validation.tpl to remove some ExtraPVC check that was failing incorrectly)
-=======
-{{- end -}}
->>>>>>> d9f0e8b (Updated the b2bi helm chart version to 2.1.3)
 
 {{- $accessMode := .Values.appResourcesPVC.accessMode -}}
 {{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod") (eq $accessMode "ReadOnlyMany") (eq $accessMode "ReadWriteMany") ( not (empty .Values.appResourcesPVC.preDefinedResourcePVCName))) -}}
