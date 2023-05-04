@@ -11,6 +11,9 @@ metadata:
   name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.cleanupJob.name) | quote }}
   labels:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.cleanupJob.name) | indent 4 }}
+{{- if .Values.test.image.extraLabels }}
+{{ toYaml .Values.test.image.extraLabels | indent 4 }}
+{{- end }}
   annotations:
     "helm.sh/hook": post-delete
     "helm.sh/hook-weight": "3"
@@ -23,6 +26,9 @@ spec:
       name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.cleanupJob.name) | quote }}
       labels:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.cleanupJob.name) | indent 8 }}
+{{- if .Values.test.image.extraLabels }}
+{{ toYaml .Values.test.image.extraLabels | indent 8 }}
+{{- end }}
       annotations:
 {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "deleteCleanup") | indent 8 }}
     spec:
