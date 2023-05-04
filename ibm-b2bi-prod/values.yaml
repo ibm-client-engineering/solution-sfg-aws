@@ -1133,6 +1133,8 @@ test:
     tag: '1.1.60'
     digest: sha256:6a514b98fe8f006d00a4bbbcc87241d900ac6a6f28f035d89a61a47aa7af25c7
     pullPolicy: 'IfNotPresent'
+    pullSecret:
+    extraLabels: {}
 
 purge:
   enabled: true
@@ -1143,6 +1145,7 @@ purge:
     digest: sha256:82af150873315122c804ec06ea356f7db186732f73ec00338076746202d84d25
     pullPolicy: IfNotPresent
     pullSecret: ""
+    extraLabels: {}
   # Provide a schedule for the purge job as a cron expression. For example "0 0 * * *" will run the purge job at 00:00 every day
   schedule:
   startingDeadlineSeconds: 60
