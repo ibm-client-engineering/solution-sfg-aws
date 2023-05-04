@@ -22,7 +22,7 @@ spec:
       name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.tlsSetupJob.name) | quote }}
       labels:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.tlsSetupJob.name) | indent 8 }}
-{- if .Values.test.image.extraLabels }}
+{{- if .Values.test.image.extraLabels }}
 {{ toYaml .Values.test.image.extraLabels | indent 8 }}
 {{- end }}
       annotations:
