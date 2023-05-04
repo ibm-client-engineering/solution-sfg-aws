@@ -27,6 +27,9 @@ spec:
           name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.extPurge.name) | quote }}
           labels:
 {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.extPurge.name) | indent 12 }}
+{{- if .Values.purge.image.extraLabels }}
+{{ toYaml .Values.purge.image.extraLabels | indent 12 }}
+{{- end }}
           annotations:
 {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "ext-purge") | indent 12 }}
             checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}        
