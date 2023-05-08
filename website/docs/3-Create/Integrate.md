@@ -3,6 +3,71 @@ id: solution-integrate
 sidebar_position: 3
 title: Integrate
 ---
+# Enabling S3 Bucket access
+
+## Task Overview
+
+Per the IBM Documentation, the following steps would need to be performed in order to allow for S3 bucket access:
+
+Installing AWS SDK for Java on B2BI Certified Container/Docker deployment:
+
+1. On B2BI Dashboard, select Customization > Customization. Click the Click Here To Access link. In the Customization login screen, enter the User Name and Password and click Login. (apiadmin/p@ssw0rd)
+2. Click Custom Jar. The Custom Jar list page is displayed.
+Click Create CustomJar.
+3. Set the 'Vendor Name' as "awssdk". 'Vendor Version' as the version from "aws-java-sdk-[version]" you downloaded earlier.
+4. Set the 'File Type' as "LIBRARY". Set 'Target Path' as "Every".
+5. Upload the files mentioned below (Create multiple custom jars using same parameters as mentioned in ibm-client-engineering/spog-fsm-st5#4 and ibm-client-engineering/spog-fsm-st5#5 above along with each file mentioned below):
+    1. aws-java-sdk-[version].jar (Found in aws-java-sdk-[version]/lib)
+    2. httpclient-[version].jar
+    3. httpcore-[version].jar
+    4. jackson-annotations-[version].jar
+    5. jackson-core-[version].jar
+    6. jackson-databind-[version].jar
+    7. joda-time-[version].jar
+    8. netty-*.jar (Found in aws-java-sdk-[version]/third-party/lib)
+
+Restart the ASI/AC/API pods.
+
+## Task Breakdown
+
+### Creating an `apiadmin` user
+
+Login to our dashboard URL:
+
+https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaws.com/dashboard/
+
+1. Select Accounts->User Accounts
+
+![apiadmin_create_01|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/53dbc727-b0fa-4a6b-b514-61421a88eae1)
+
+2. Set the username to `apiadmin` with a password of `p@ssw0rd`
+
+![apiadmin_create_02|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/281121e5-0358-4a47-9a6a-2de6e4f65e8c)
+
+3. Skip SSH Authorized Keys as we do not require this for this account
+
+![apiadmin_create_03|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/09287bb6-2f43-462f-92ce-8dccce62b39f)
+
+
+4. Under `Filter Data` search for `Sterling`, then Select `Sterling B2B Integrator Admin` and assign it. Then press `Next`
+
+| | |
+|:---|:---|
+|![apiadmin_create_04a\|150](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/1e52ec87-11e4-48ae-88fb-af7a1fbc1b15)|![apiadmin_create_04b\|150](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/73b5ac62-2778-4975-9ab8-ce182a51f690)|
+
+5. Permissions - Under `Filter Data` search for `APIUser`. Select `APIUser` and add it to the permissions below with the arrow. Then hit `Next`.
+
+| | |
+|:---|:---|
+|![apiadmin_create_05a\|150](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/9279d0e8-d713-476d-9c68-7a87f7cc7fe0)|![apiadmin_create_05b\|150](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/b21115d7-a14e-4448-b655-9d0381b89a87)|
+
+6. User Information - Set the `Given Name` and `Surname` to `api` and `apiadmin` respectfully. Then click `Next`.
+
+![apiadmin_create_06|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/fabef444-8f8c-4740-a98a-8440ce848704)
+
+7. Confirm - Verify all info is correct and then click `Finish`
+
+![apiadmin_create_07|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/57cca0b8-605f-4704-b235-70d43a6a5c06)
 
 # B2Bi Adapter creation and configuration
 
