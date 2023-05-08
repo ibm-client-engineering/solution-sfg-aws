@@ -134,6 +134,33 @@ When complete, the page should look _similar_ but not exactly like this:
 
 ![customjars_04|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/394fa3dd-5ea4-4360-b619-d099009d5c85)
 
+Restart all the pods.
+
+```
+kubectl scale sts sterling-b2bi-b2bi-ac-server --replicas=0
+kubectl scale sts sterling-b2bi-b2bi-asi-server --replicas=0
+kubectl scale sts sterling-b2bi-b2bi-api-server --replicas=0
+kubectl scale sts sterling-b2bi-b2bi-ac-server --replicas=1
+kubectl scale sts sterling-b2bi-b2bi-asi-server --replicas=1
+kubectl scale sts sterling-b2bi-b2bi-api-server --replicas=1
+```
+
+:::warning
+
+You may need to update the startup probe failure threshold for the ASI application in your b2bi overrides file to 12 before restarting the pods after creating the above custom jars.
+
+```
+  startupProbe:
+    initialDelaySeconds: 120
+    timeoutSeconds: 30
+    periodSeconds: 60
+    failureThreshold: 12
+
+```
+
+Whenever the pods are restarted, they will go through a copy process to install these custom jars and that adds to the load time. Without this change, the startup probe may wind up killing the ASI pod before this process is complete.
+:::
+
 # B2Bi Adapter creation and configuration
 
 ## Configuring communication adapters:
