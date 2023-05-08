@@ -10,8 +10,8 @@ title: Integrate
 
 The following adapters can be used with Sterling File Gateway:
 
-| Protocol | Adapter |
-|----------|---------|
+| Protocol | Adapter | 
+|:----------|:---------|
 | FTP, FTPS | FTP Server adapter |
 | FTP, FTPS |	FTP Client adapter and services |
 | SSH/SFTP, SSH/SCP |	SFTP Server adapter |
@@ -20,11 +20,7 @@ The following adapters can be used with Sterling File Gateway:
 | PGP |	Command Line Adapter 2 |
 | HTTP, HTTPS, WebDAV (Requires extensibility. See Add Custom Protocols.) |	HTTP Server adapter |
 | HTTP, HTTPS, WebDAV (Requires extensibility. See Add Custom Protocols.) |	HTTP Client adapter and services |
-| WebSphere® MQ File Transfer Edition |
-- WebSphere MQ File Transfer Edition Agent adapter
-- WebSphere MQ Suite Async adapter
-- WebSphere MQ File Transfer Edition Create Transfer service
-- FTP Server Adapter |
+| WebSphere® MQ File Transfer Edition | WebSphere MQ File Transfer Edition Agent adapter, WebSphere MQ Suite Async adapter, WebSphere MQ File Transfer Edition Create Transfer service, FTP Server Adapter |
 
 
 Primary URL can be found with the following command:
@@ -85,14 +81,14 @@ Log out and log back into the `filegateway` as `fg_architect`
 
 Select Routes > Templates > Create to create a routing channel template with the following values:
 
-<img src="../../../images/Template_Type.png" width="300">
-<img src="../../../images/Template_Special_Characters.png" width="300">
-<img src="../../../images/Template_Groups.png" width="300">
-<img src="../../../images/Template_Provisioning_Facts.png" width="300">
-<img src="../../../images/Template_Producer_File_Structure.png" width="300">
-<img src="../../../images/Template_Consumer_File_Structure_add.png" width="300">
-<img src="../../../images/Template_Consumer_File_Structure_format.png" width="300">
-<img src="../../../images/Template_Consumer_File_Structure_Save.png" width="300">
+
+| | |
+|:---|:---|
+|![Template_Type.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/260bc4f3-f735-48bf-8f93-af875861e416)|![Template_Special_Characters.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/f513633a-f09d-4e37-a59a-9688e128a84f)|
+|![Template_Groups.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/0b40b765-bf0b-4ce7-851f-4014416bbe0d)|![Template_Provisioning_Facts.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/18c24d5d-ea91-4ac4-ba97-061bbd8f13e9)|
+|![Template_Producer_File_Structure.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/66378f70-9226-4789-80fb-73ec8de62c5f)|![Template_Consumer_File_Structure_add.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/49d355aa-03a2-456a-9cde-260602bc8c77)|
+|![Template_Consumer_File_Structure_format.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/5acfa848-027d-4ec7-95a3-c01cd38cf2bf)|![Template_Consumer_File_Structure_Save.png\|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/e41e146b-8f13-4266-a692-01ac0768d467)|
+
 
 Save the template
 
@@ -123,9 +119,9 @@ Log out and log back in to `filegateway` as `fg_operator`. If the default `passw
 
 Search for the file that was uploaded. We called it `readme.txt` in this example.
 
-<img src="../../../images/File_search.png" width="300">
+![File_search.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/49489c00-e2f6-411f-9673-9f63226ef131)
 
-<img src="../../../images/File_search2.png" width="300">
+![File_search2.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/86314ce6-4907-4ae1-a94b-ce18e03f9f44)
 
 ### SFTP Access
 
@@ -137,53 +133,53 @@ Log into the `dashboard` url for B2Bi and select:
 
 Select the **Go** button next to New Host Identity key
 
-<img src="../../../images/sfg-sftp-server-adapter-step01.png" width="300">
+![sfg-sftp-server-adapter-step01.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/b56c7114-5beb-4426-926e-2a1808ef3edb)
 
 Set the hostname to something that matches. In our example we set it to `sterlingb2bi` and then set the key length to 2048.
 
-<img src="../../../images/sfg-sftp-server-adapter-step02.png" width="300">
+![sfg-sftp-server-adapter-step02.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/7e71dfce-3241-4125-8f51-a9f1ed94e90f)
 
 Under **Deployment->Services->Configuration** Create the new service.
 
-<img src="../../../images/sfg-sftp-server-adapter-step03.png" width="300">
+![sfg-sftp-server-adapter-step03.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/243cebad-f948-4bb2-8672-6393f90f87fe)
 
 Select `SFTP Server Adapter 2.0` under the Service Type.
 
-<img src="../../../images/sfg-sftp-server-adapter-step04.png" width="300">
+![sfg-sftp-server-adapter-step04.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/bb6ca076-7c3e-48d5-8e39-5898f0255280)
 
 Under `Services Configuration`, let's name this `SFTP Server Inbound` and also set that as the description. While B2BI has the capability of scaling the service to live across multiple pods, for now we are going to have it just live on our AC service pod.
 
-<img src="../../../images/sfg-sftp-server-adapter-step05.png" width="300">
+![sfg-sftp-server-adapter-step05.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/40abfb52-fb37-4de5-bde5-8f0ca664e1ef)
 
 Let's configure our Services Configuration for SFTP Server Inbound with the following values. Our `Host Identity Key` will be pre-populated with the host key we already created.
 
-<img src="../../../images/sfg-sftp-server-adapter-step06.png" width="300">
+![sfg-sftp-server-adapter-step06.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/e0c21c1d-7384-4a5f-b238-af51f3889d3a)
 
 Now let's set our document storage. For testing purposes we selected the Database to be our storage location where the files will be stored as blobs. Going forward this might not be the ideal location, but it is suitable for testing.
 
-<img src="../../../images/sfg-sftp-server-adapter-step07.png" width="300">
+![sfg-sftp-server-adapter-step07.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/35ba645a-aef0-4d03-a6f2-97dabaf7e89c)
 
 Next let's configure our allowed users. This can be set to match a group, but for our purposes, we will use the two partner ids we created above.
 
-<img src="../../../images/sfg-sftp-server-adapter-step08.png" width="300">
+![sfg-sftp-server-adapter-step08.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/5e11b2c0-17f6-4e74-a2c3-fdd7ecb615f2)
 
 Our final services configuration should look similar to below. Make sure to check `Enable Service for Business Processes` as this will actually start the service. Also important to note that the listen port for the service will be `50039`.
 
-<img src="../../../images/sfg-sftp-server-adapter-step09.png" width="300">
+![sfg-sftp-server-adapter-step09.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/aca6e922-c6cc-4dc9-855c-9b81329596bd)
 
 Let's verify the SFTP Adapter Service came up.
 
 Under **Services->Configuration** search for `SFTP Inbound` as that's what we called this service adapter.
 
-<img src="../../../images/sfg-sftp-server-adapter-step10.png" width="300">
+![sfg-sftp-server-adapter-step10.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/1272cbe7-93a2-426e-b6fe-0f7dddb06425)
 
 Under the `Select Node` dropdown, set it to `node1AC1` as that's where we hosted this adapter service.
 
-<img src="../../../images/sfg-sftp-server-adapter-step11.png" width="300">
+![sfg-sftp-server-adapter-step11.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/5a450a3e-9b71-4739-b8dc-b460748c9889)
 
 You should see under Advanced Stats that the service in running and enabled. Clicking the exclaimation point next to `Enabled` will show you the service log.
 
-<img src="../../../images/sfg-sftp-server-adapter-step12.png" width="300">
+![sfg-sftp-server-adapter-step12.png|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/17ae7acc-d868-40a7-8e34-73d47daf37c9)
 
 ### Cluster configuration to allow inbound access
 
