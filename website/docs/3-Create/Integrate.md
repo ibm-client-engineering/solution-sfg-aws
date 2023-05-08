@@ -78,8 +78,27 @@ Latest SDK can be retrieved here:
 
 https://sdk-for-java.amazonwebservices.com/latest/aws-java-sdk.zip
 
-Download the zip and extract it.
+Download the zip and extract it. The files needed will live at the following paths:
 
+```
+aws-java-sdk-1.12.464/lib/aws-java-sdk-1.12.464.jar
+aws-java-sdk-1.12.464/third-party/lib/httpclient-4.5.13.jar
+aws-java-sdk-1.12.464/third-party/lib/httpcore-4.4.13.jar
+aws-java-sdk-1.12.464/third-party/lib/jackson-annotations-2.12.7.jar
+aws-java-sdk-1.12.464/third-party/lib/jackson-core-2.12.7.jar
+aws-java-sdk-1.12.464/third-party/lib/jackson-databind-2.12.7.1.jar
+aws-java-sdk-1.12.464/third-party/lib/joda-time-2.8.1.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-buffer-4.1.86.Final.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-codec-4.1.86.Final.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-codec-http-4.1.86.Final.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-common-4.1.86.Final.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-handler-4.1.86.Final.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-resolver-4.1.86.Final.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-transport-4.1.86.Final.jar
+aws-java-sdk-1.12.464/third-party/lib/netty-transport-native-unix-common-4.1.86.Final.jar
+```
+
+Versions may be differnt as the `aws-java-sdk.zip` is always being updated.
 
 ### PropertyUI url
 
@@ -93,9 +112,27 @@ https://myingress.elb.us-east-1.amazonaws.com/propertyUI/app/
 
 Login using the `apiadmin` user we created with the password `apipassword`
 
+### Upload each jar file
+
 Select `CustomJar` from the top menubar
 
 ![customjars_01|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/6d410788-68d4-4a1d-a66d-d719b0cf24e8)
+
+Click `Create CustomJar` from the top of the page
+
+![customjars_02|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/cca5de3f-9d01-4bdb-9874-f379f119de27)
+
+In this example we are uploading the latest `aws-java-sdk` jar file. Click the browse button and select the aws-java-sdk jar file from the path extracted above.
+
+![customjars_03|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/78111b83-f7c0-4027-ae76-5a086a8f8719)
+
+When complete, click the `Save CustomJar` button.
+
+Wash, rinse, repeat with the other jar files in the above list. 
+
+When complete, the page should look _similar_ but not exactly like this:
+
+![customjars_04|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/394fa3dd-5ea4-4360-b619-d099009d5c85)
 
 # B2Bi Adapter creation and configuration
 
