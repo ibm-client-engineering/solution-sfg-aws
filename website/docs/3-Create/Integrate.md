@@ -11,7 +11,7 @@ Per the IBM Documentation, the following steps would need to be performed in ord
 
 Installing AWS SDK for Java on B2BI Certified Container/Docker deployment:
 
-1. On B2BI Dashboard, select Customization > Customization. Click the Click Here To Access link. In the Customization login screen, enter the User Name and Password and click Login. (apiadmin/p@ssw0rd)
+1. On B2BI Dashboard, select Customization > Customization. Click the Click Here To Access link. In the Customization login screen, enter the User Name and Password and click Login. (apiadmin/apipassword)
 2. Click Custom Jar. The Custom Jar list page is displayed.
 Click Create CustomJar.
 3. Set the 'Vendor Name' as "awssdk". 'Vendor Version' as the version from "aws-java-sdk-[version]" you downloaded earlier.
@@ -40,7 +40,7 @@ https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaw
 
 ![apiadmin_create_01|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/53dbc727-b0fa-4a6b-b514-61421a88eae1)
 
-2. Set the username to `apiadmin` with a password of `p@ssw0rd`
+2. Set the username to `apiadmin` with a password of `apipassword`
 
 ![apiadmin_create_02|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/281121e5-0358-4a47-9a6a-2de6e4f65e8c)
 
@@ -68,6 +68,34 @@ https://k8s-ingressn-ingressn-f9d3dcbc72-69d548b3e1e33f06.elb.us-east-1.amazonaw
 7. Confirm - Verify all info is correct and then click `Finish`
 
 ![apiadmin_create_07|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/57cca0b8-605f-4704-b235-70d43a6a5c06)
+
+
+## Uploading Required Jar files for S3 access
+
+### Downloading latest AWS SDK zip file
+
+Latest SDK can be retrieved here:
+
+https://sdk-for-java.amazonwebservices.com/latest/aws-java-sdk.zip
+
+Download the zip and extract it.
+
+
+### PropertyUI url
+
+Retrieve the propertyUI url. It can be retrieved with the following command:
+
+```
+echo "https://"$(kubectl get ingress sterling-b2bi-b2bi-ingress -o jsonpath='{..hostname}')"/propertyUI/app/"
+
+https://myingress.elb.us-east-1.amazonaws.com/propertyUI/app/
+```
+
+Login using the `apiadmin` user we created with the password `apipassword`
+
+Select `CustomJar` from the top menubar
+
+![customjars_01|300](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/6d410788-68d4-4a1d-a66d-d719b0cf24e8)
 
 # B2Bi Adapter creation and configuration
 
