@@ -107,7 +107,9 @@ security:
 
 ingress:
   enabled: true
-  controller: nginx
+#  controller: "alb"
+  controller: "nginx"
+#  annotations: {}
   annotations:
     nginx.ingress.kubernetes.io/proxy-body-size: 2000m
   port:
