@@ -107,11 +107,16 @@ security:
 
 ingress:
   enabled: true
-#  controller: "alb"
-  controller: "nginx"
-#  annotations: {}
+  controller: "alb"
   annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: 2000m
+    alb.ingress.kubernetes.io/target-type: ip 
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: 'arn:aws:acm:us-east-1:748107796891:certificate/ccc1b02c-8bad-4559-ac61-5efd4087432b'
+#  controller: "nginx"
+#  annotations:
+#    nginx.ingress.kubernetes.io/proxy-body-size: 2000m
   port:
 
 dataSetup:
@@ -336,13 +341,19 @@ asi:
     
   ingress:
     internal:
-      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is NGINX
+#      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is alb
+      host: "*.us-east-1.elb.amazonaws.com"
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-asi-frontend-svc
       extraPaths: []
     external:
-      host: "*.elb.us-east-1.amazonaws.com" 
+# When ingress class is NGINX
+#      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is alb
+      host: "*.us-east-1.elb.amazonaws.com"
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-asi-frontend-svc
@@ -486,13 +497,19 @@ ac:
       
   ingress:
     internal:
-      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is NGINX
+#      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is alb
+      host: "*.us-east-1.elb.amazonaws.com"
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-ac-frontend-svc
       extraPaths: []
     external:
-      host: "*.elb.us-east-1.amazonaws.com" 
+# When ingress class is NGINX
+#      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is alb
+      host: "*.us-east-1.elb.amazonaws.com"
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-ac-frontend-svc
@@ -603,7 +620,10 @@ api:
 
   ingress:
     internal:
-      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is NGINX
+#      host: "*.elb.us-east-1.amazonaws.com"
+# When ingress class is alb
+      host: "*.us-east-1.elb.amazonaws.com"
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-api-frontend-svc
