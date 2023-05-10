@@ -129,22 +129,44 @@ The following link is for the required helm charts for this installation. If you
 
 Download the `ibm-b2bi-prod` helm charts from the above link.
 
-Extract the `ibm-b2bi-prod-2.1.1.tgz` file
-```
-tar zxvf ibm-b2bi-prod-2.1.1.tgz
-```
-We will need to update the Kubernetes version in the `Chart.yaml`
+Extract the `ibm-b2bi-prod-2.1.3.tgz` file
 
 ```
-cd ibm-b2bi-prod
+tar zxvf ibm-b2bi-prod-2.1.3.tgz
 ```
+
+Apply the patches included with this repo from the same directory you extracted the helm charts. 
+
+```
+patch -p0 < path/to/repo/patches/*.patch
+
+patching file 'ibm-b2bi-prod/templates/db-setup-job.yaml'
+patching file 'ibm-b2bi-prod/templates/ext-purge-job.yaml'
+patching file 'ibm-b2bi-prod/templates/post-delete-cleanup-job.yaml'
+patching file 'ibm-b2bi-prod/templates/postinstall-patch-ingress-job.yaml'
+patching file 'ibm-b2bi-prod/templates/preinstall-tls-setup-job.yaml'
+patching file 'ibm-b2bi-prod/values.yaml'
+patching file 'ibm-b2bi-prod/templates/ingress.yaml'
+patching file 'ibm-b2bi-prod/templates/ac-backend-service.yaml'
+patching file 'ibm-b2bi-prod/templates/asi-backend-service.yaml'
+patching file 'ibm-b2bi-prod/templates/validation.tpl'
+patching file 'ibm-b2bi-prod/values.yaml'
+
+```
+
 ### Update our chart version
 
 :::note
 
-As of this writing, you will need to update the version in the `Chart.yaml`.
+As of this writing, you will need to update the version in the `Chart.yaml` in version 2.1.3 and below.
 
 :::
+
+Update the Kubernetes version in the `Chart.yaml`
+
+```
+cd ibm-b2bi-prod
+```
 
 Retrieve our EKS kubernetes version
 ```
@@ -154,7 +176,6 @@ Client Version: v1.23.0
 Kustomize Version: v4.5.7
 Server Version: v1.23.14-eks-ffeb93d
 ```
-### Update the Chart.yaml
 
 Make a note of the `Server Version` and update the `Chart.yaml` file in the `ibm-b2bi-prod` directory.
 ```
