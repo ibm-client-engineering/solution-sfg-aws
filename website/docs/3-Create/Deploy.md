@@ -244,22 +244,126 @@ Add the labels that would be applied to each pod
 
 Host entries for each ingress should match what your existing domain is if you don't have a dedicated FQDN. This means you should set a wildcard.
 
-In our example, we are on AWS so our ingress host entries look like the following in the overrides document for each application (ac, asi, api):
+In our example, we are not using a custom domain so our ingress host entries look like the following in the overrides document for each application (ac, asi, api):
 
 ```
   ingress:
     internal:
-      host: "*.elb.us-east-1.amazonaws.com"
+      host: "*.amazonaws.com"
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-ac-frontend-svc
       extraPaths: []
     external:
-      host: "*.elb.us-east-1.amazonaws.com"
+      host: "*.amazonaws.com" 
       tls:
         enabled: true
         secretName: sterling-b2bi-b2bi-ac-frontend-svc
       extraPaths: []
+```
+
+### Configuring Ingress in the overrides
+
+Depending on whether you have installed the NGINX Ingress Controller or are using the native ALB Ingress, you will need to make the following updates to the overrides.
+
+#### ALB Ingress
+
+```
+ingress:
+  enabled: true
+  controller: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/target-type: ip 
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/backend-protocol: HTTPS
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: '<CERT ARN>'
+  port:
+```
+
+:::note
+
+ALB Ingress requires a tls cert stored in AWS ACM. Follow this procedure to generate a cert and key and import it to ACM. If you have a FQDN to use for the host, set it here for the CN or use a wildcard for your domain. Our example uses `*.amazonaws.com` 
+
+```
+openssl genrsa 2048 -out alb-key.pem
+
+openssl req -new -x509 -nodes -sha256 -days 999 -key alb-key.pem -outform PEM -out alb-cert.pem -subj "/C=US/ST=MA/L=Boston/O=IBM/OU=FSM/CN=*.amazonaws.com"
+```
+
+Import it into ACM with the following command. Region should be set to your cluster's region.
+
+```
+aws acm import-certificate \
+--certificate fileb://alb-cert.pem \
+--private-key fileb://alb-key.pem \
+--region us-east-1 \
+--tags "Key=cluster,Value=sterling-mft-east"
+
+{
+    "CertificateArn": "arn:aws:acm:us-east-1:748107796891:certificate/7aa410d2-7d5d-488d-918d-a9fdfed5d77f"
+}
+
+```
+Take note of the returned CertificateArn as this is the value you need for `alb.ingress.kubernetes.io/certificate-arn:`
+
+:::
+
+#### NGINX Controller Ingress
+
+```
+ingress:
+  enabled: true
+  controller: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 2000m
+  port:
+```
+
+:::note
+
+For NGINX we need to update `nginx.ingress.kubernetes.io/proxy-body-size:` to a high size in order to be able to upload large jar files to the B2Bi api.
+
+:::
+
+#### Ingress settings for each application
+
+AC and ASI should have their own `ingress` entries that will look similar to this:
+
+```
+  ingress:
+    internal:
+      host: "*.amazonaws.com"
+      tls:
+        enabled: true
+        secretName: sterling-b2bi-b2bi-ac-frontend-svc
+      extraPaths: []
+    external:
+      host: "*.amazonaws.com"
+      tls:
+        enabled: true
+        secretName: sterling-b2bi-b2bi-ac-frontend-svc
+      extraPaths: []
+```
+
+Set the `host:` entry to either a wildcard for your custom domain or the fqdn you established if you are using your own domain. The `secretName:` should match the service:
+
+```
+sterling-b2bi-b2bi-asi-frontend-svc
+sterling-b2bi-b2bi-ac-frontend-svc
+sterling-b2bi-b2bi-api-frontend-svc
+
+```
+
+For API use the same logic as above and use your specific FQDN or your wildcarded domain:
+
+```
+  ingress:
+    internal:
+      host: "*.amazonaws.com"
+      tls:
+        enabled: true
+        secretName: sterling-b2bi-b2bi-api-frontend-svc
 ```
 
 ### Setting MQ info in the overrides
@@ -330,18 +434,7 @@ global:
             port: 1366
 // highlight-end
 ```
-### Increased proxy-body-size
 
-Ingress needs to be updated globally in the overrides to allow for uploading large jar files to the B2Bi api.
-
-```
-ingress:
-  enabled: true
-  controller: nginx
-  annotations:
-    nginx.ingress.kubernetes.io/proxy-body-size: 2000m
-  port:
-```
 
 ### TLS SecretNames for ingress
 
