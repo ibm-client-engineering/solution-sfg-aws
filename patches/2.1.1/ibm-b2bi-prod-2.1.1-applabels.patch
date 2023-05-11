@@ -1,0 +1,125 @@
+diff --color -uNr ibm-b2bi-prod-2.1.1/templates/db-setup-job.yaml ibm-b2bi-prod/templates/db-setup-job.yaml
+--- ibm-b2bi-prod-2.1.1/templates/db-setup-job.yaml	2022-12-24 01:16:19
++++ ibm-b2bi-prod/templates/db-setup-job.yaml	2023-05-11 12:54:29
+@@ -18,6 +18,9 @@
+         "helm.sh/hook-delete-policy": "hook-succeeded,before-hook-creation"
+     labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.dbSetup.name) | indent 8 }}
++{{- if .Values.dataSetup.image.extraLabels }}
++{{ toYaml .Values.dataSetup.image.extraLabels | indent 8 }}
++{{- end }}
+ spec:
+     backoffLimit: 1
+     template:
+@@ -25,6 +28,9 @@
+             name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.dbSetup.name) | quote }}
+             labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.dbSetup.name) | indent 14 }}
++{{- if .Values.dataSetup.image.extraLabels }}
++{{ toYaml .Values.dataSetup.image.extraLabels | indent 14 }}
++{{- end }}
+             annotations:
+ {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "db-setup") | indent 14 }}
+         spec:
+diff --color -uNr ibm-b2bi-prod-2.1.1/templates/ext-purge-job.yaml ibm-b2bi-prod/templates/ext-purge-job.yaml
+--- ibm-b2bi-prod-2.1.1/templates/ext-purge-job.yaml	2022-12-24 01:16:19
++++ ibm-b2bi-prod/templates/ext-purge-job.yaml	2023-05-11 12:54:30
+@@ -27,6 +27,9 @@
+           name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.extPurge.name) | quote }}
+           labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.extPurge.name) | indent 12 }}
++{{- if .Values.purge.image.extraLabels }}
++{{ toYaml .Values.purge.image.extraLabels | indent 12 }}
++{{- end }}
+           annotations:
+ {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "ext-purge") | indent 12 }}
+             checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}        
+diff --color -uNr ibm-b2bi-prod-2.1.1/templates/post-delete-cleanup-job.yaml ibm-b2bi-prod/templates/post-delete-cleanup-job.yaml
+--- ibm-b2bi-prod-2.1.1/templates/post-delete-cleanup-job.yaml	2022-12-24 01:16:19
++++ ibm-b2bi-prod/templates/post-delete-cleanup-job.yaml	2023-05-11 12:54:30
+@@ -11,6 +11,9 @@
+   name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.cleanupJob.name) | quote }}
+   labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.cleanupJob.name) | indent 4 }}
++{{- if .Values.test.image.extraLabels }}
++{{ toYaml .Values.test.image.extraLabels | indent 4 }}
++{{- end }}
+   annotations:
+     "helm.sh/hook": post-delete
+     "helm.sh/hook-weight": "3"
+@@ -23,6 +26,9 @@
+       name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.cleanupJob.name) | quote }}
+       labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.cleanupJob.name) | indent 8 }}
++{{- if .Values.test.image.extraLabels }}
++{{ toYaml .Values.test.image.extraLabels | indent 8 }}
++{{- end }}
+       annotations:
+ {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "deleteCleanup") | indent 8 }}
+     spec:
+diff --color -uNr ibm-b2bi-prod-2.1.1/templates/postinstall-patch-ingress-job.yaml ibm-b2bi-prod/templates/postinstall-patch-ingress-job.yaml
+--- ibm-b2bi-prod-2.1.1/templates/postinstall-patch-ingress-job.yaml	2022-12-24 01:16:19
++++ ibm-b2bi-prod/templates/postinstall-patch-ingress-job.yaml	2023-05-11 12:54:31
+@@ -10,6 +10,9 @@
+   name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.patchIngressJob.name) | quote }}
+   labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.patchIngressJob.name) | indent 4 }}
++{{- if .Values.test.image.extraLabels }}
++{{ toYaml .Values.test.image.extraLabels | indent 4 }}
++{{- end }}
+   annotations:
+     "helm.sh/hook": "post-install, post-upgrade"
+     "helm.sh/hook-weight": "1"
+@@ -21,6 +24,9 @@
+       name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.patchIngressJob.name) | quote }}
+       labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.patchIngressJob.name) | indent 8 }}
++{{- if .Values.test.image.extraLabels }}
++{{ toYaml .Values.test.image.extraLabels | indent 8 }}
++{{- end }}
+       annotations:
+ {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "deleteCleanup") | indent 8 }}
+     spec:
+diff --color -uNr ibm-b2bi-prod-2.1.1/templates/preinstall-tls-setup-job.yaml ibm-b2bi-prod/templates/preinstall-tls-setup-job.yaml
+--- ibm-b2bi-prod-2.1.1/templates/preinstall-tls-setup-job.yaml	2022-12-24 01:16:19
++++ ibm-b2bi-prod/templates/preinstall-tls-setup-job.yaml	2023-05-11 12:54:31
+@@ -8,6 +8,9 @@
+   name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.tlsSetupJob.name) | quote }}
+   labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.tlsSetupJob.name) | indent 4 }}
++{{- if .Values.test.image.extraLabels }}
++{{ toYaml .Values.test.image.extraLabels | indent 4 }}
++{{- end }}
+   annotations:
+     "helm.sh/hook": "pre-install, pre-upgrade"
+     "helm.sh/hook-weight": "1"
+@@ -19,6 +22,9 @@
+       name: {{ include "sch.names.fullCompName" (list . .sch.chart.components.tlsSetupJob.name) | quote }}
+       labels:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.tlsSetupJob.name) | indent 8 }}
++{{- if .Values.test.image.extraLabels }}
++{{ toYaml .Values.test.image.extraLabels | indent 8 }}
++{{- end }}
+       annotations:
+ {{- include "sch.metadata.annotations.metering" (list . .sch.chart.metering .sch.chart.nonMetering.nonChargeableProductMetric nil "preinstall") | indent 8 }}
+     spec:
+diff --color -uNr ibm-b2bi-prod-2.1.1/values.yaml ibm-b2bi-prod/values.yaml
+--- ibm-b2bi-prod-2.1.1/values.yaml	2022-12-24 01:16:19
++++ ibm-b2bi-prod/values.yaml	2023-05-11 12:54:34
+@@ -1056,6 +1058,8 @@
+     tag: '1.1.54'
+     digest: sha256:9bfcc7b58d503c45097dae5d35577b45bb8ffb56e8f9244e8cd3574dd36daf4c
+     pullPolicy: 'IfNotPresent'
++    pullSecret:
++    extraLabels: {}
+ 
+ purge:
+   enabled: true
+@@ -1066,6 +1070,7 @@
+     digest: sha256:b3a8b080fb9640796879105d9c6544a0630a4d2a0e3dc65cc84ac690e9522ba5
+     pullPolicy: IfNotPresent
+     pullSecret: ""
++    extraLabels: {}
+   # Provide a schedule for the purge job as a cron expression. For example "0 0 * * *" will run the purge job at 00:00 every day
+   schedule:
+   startingDeadlineSeconds: 60
