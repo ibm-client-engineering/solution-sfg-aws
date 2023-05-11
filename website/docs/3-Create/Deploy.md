@@ -135,10 +135,10 @@ Extract the `ibm-b2bi-prod-2.1.3.tgz` file
 tar zxvf ibm-b2bi-prod-2.1.3.tgz
 ```
 
-Apply the patches included with this repo from the same directory you extracted the helm charts. 
+Apply the patches included with this repo from the same directory you extracted the helm charts. There are also patches for 2.1.1 in that patch directory, but we are working with 2.1.3 of the helm charts.
 
 ```
-patch -p0 < path/to/repo/patches/*.patch
+patch -p0 < path/to/repo/patches/2.1.3/*.patch -V none
 
 patching file 'ibm-b2bi-prod/templates/db-setup-job.yaml'
 patching file 'ibm-b2bi-prod/templates/ext-purge-job.yaml'
