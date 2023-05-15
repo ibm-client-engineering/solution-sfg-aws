@@ -1,0 +1,69 @@
+diff --color -uNr ibm-b2bi-prod-orig/templates/ac-backend-service.yaml ibm-b2bi-prod/templates/ac-backend-service.yaml
+--- ibm-b2bi-prod-orig/templates/ac-backend-service.yaml	2023-03-27 09:39:36
++++ ibm-b2bi-prod/templates/ac-backend-service.yaml	2023-05-04 08:32:27
+@@ -63,6 +63,12 @@
+     {{- end }}
+     {{- end }}
+     {{- end }}
++    {{- if .Values.ac.backendService.loadBalancerSourceRanges }}
++  loadBalancerSourceRanges:
++  {{- range $group := .Values.ac.backendService.loadBalancerSourceRanges }}
++    - {{ $group -}}
++  {{ end }}
++  {{- end }}
+   selector:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.acServer.name) | indent 4 }}  
+    {{- if and (eq $serviceType "LoadBalancer") (.Values.ac.backendService.loadBalancerIP) }}
+diff --color -uNr ibm-b2bi-prod-orig/templates/asi-backend-service.yaml ibm-b2bi-prod/templates/asi-backend-service.yaml
+--- ibm-b2bi-prod-orig/templates/asi-backend-service.yaml	2023-03-27 09:39:36
++++ ibm-b2bi-prod/templates/asi-backend-service.yaml	2023-05-04 08:32:27
+@@ -63,6 +63,12 @@
+     {{- end }}
+     {{- end }}
+     {{- end }}
++    {{- if .Values.asi.backendService.loadBalancerSourceRanges }}
++  loadBalancerSourceRanges:
++  {{- range $group := .Values.asi.backendService.loadBalancerSourceRanges }}
++    - {{ $group -}}
++  {{ end }}
++  {{- end }}
+   selector:
+ {{ include "sch.metadata.labels.standard" (list . .sch.chart.components.asiServer.name) | indent 4 }} 
+     {{- if and (eq $serviceType "LoadBalancer") (.Values.asi.backendService.loadBalancerIP) }}    
+diff --color -uNr ibm-b2bi-prod-orig/templates/validation.tpl ibm-b2bi-prod/templates/validation.tpl
+--- ibm-b2bi-prod-orig/templates/validation.tpl	2023-03-27 09:39:36
++++ ibm-b2bi-prod/templates/validation.tpl	2023-05-04 08:32:27
+@@ -474,12 +474,12 @@
+ {{- $resourcesPVCEnabled := .Values.appResourcesPVC.enabled | toString -}}
+ {{- if eq $resourcesPVCEnabled "true" -}}
+ 
+-{{- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
++{{/*- if (.Values.appResourcesPVC.preDefinedResourcePVCName) }}
+ {{- $resourceexist := (empty (lookup "v1" "PersistentVolumeClaim" .Release.Namespace .Values.appResourcesPVC.preDefinedResourcePVCName)) | ternary "false" "true"  }}
+ {{ if (eq $resourceexist "false") }}
+ {{- fail "Error: PVC .Values.appResourcesPVC.preDefinedResourcePVCName not found in namespace.." -}}
+ {{- end -}}
+-{{- end -}}
++{{- end -*/}}
+ 
+ {{- $accessMode := .Values.appResourcesPVC.accessMode -}}
+ {{- if not ( or (eq $accessMode "ReadWriteOnce") (eq $accessMode "ReadWriteOncePod") (eq $accessMode "ReadOnlyMany") (eq $accessMode "ReadWriteMany") ( not (empty .Values.appResourcesPVC.preDefinedResourcePVCName))) -}}
+diff --color -uNr ibm-b2bi-prod-orig/values.yaml ibm-b2bi-prod/values.yaml
+--- ibm-b2bi-prod-orig/values.yaml	2023-03-27 09:39:36
++++ ibm-b2bi-prod/values.yaml	2023-05-04 08:32:27
+@@ -383,6 +383,7 @@
+       # nodePort: 30100
+       # protocol: TCP
+     loadBalancerIP:  
++    loadBalancerSourceRanges: []
+     annotations: {}  
+   
+   backendService:
+@@ -700,6 +701,7 @@
+       #  nodePortRange: 30501-30600
+       #  protocol: TCP
+     loadBalancerIP:  
++    loadBalancerSourceRanges: []
+     annotations: {} 
+ 
+   livenessProbe:

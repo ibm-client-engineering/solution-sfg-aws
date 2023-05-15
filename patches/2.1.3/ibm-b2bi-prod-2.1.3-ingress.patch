@@ -1,0 +1,31 @@
+diff --color -uNr ibm-b2bi-prod-orig/templates/ingress.yaml ibm-b2bi-prod/templates/ingress.yaml
+--- ibm-b2bi-prod-orig/templates/ingress.yaml	2023-03-27 09:39:36
++++ ibm-b2bi-prod/templates/ingress.yaml	2023-05-09 12:59:36
+@@ -514,9 +514,11 @@
+ {{- end }}
+ {{- end }}
+ {{- if and (.Values.ac.ingress.internal.host) (.Values.ac.ingress.internal.extraPaths) }}
++{{- if and ( ne (.Values.ac.ingress.internal.host) (.Values.asi.ingress.internal.host) ) ( ne (.Values.ac.ingress.internal.host) (.Values.api.ingress.internal.host) ) }}
+     - host: {{ .Values.ac.ingress.internal.host | quote }}
+       http:
+         paths:
++{{- end }}
+ {{- range $i, $path := .Values.ac.ingress.internal.extraPaths }}
+           - path: {{ $path.path }}
+             pathType: Prefix
+@@ -541,6 +543,8 @@
+                   name: {{ $path.servicePort }}
+ {{- end }}
+ {{- end }}
++{{- if and ( ne (.Values.api.ingress.internal.host) (.Values.asi.ingress.internal.host) ) ( ne (.Values.api.ingress.internal.host) (.Values.ac.ingress.internal.host) ) }}
+     - host: {{ .Values.api.ingress.internal.host | quote }}
+       http:
+         paths:
+@@ -555,6 +559,8 @@
+ {{- else }}
+                   name: http
+ {{- end }}    
++{{- end }}
+ {{- range $i, $path := $apiInternalPaths }}
+           - path: {{ $path.path }}
+             pathType: Prefix
