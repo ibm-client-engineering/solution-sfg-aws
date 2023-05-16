@@ -129,9 +129,9 @@ The following link is for the required helm charts for this installation. If you
 
 Download the `ibm-b2bi-prod` helm charts from the above link.
 
-Extract the `ibm-b2bi-prod-2.1.1.tgz` file
+Extract the `ibm-b2bi-prod-2.1.3.tgz` file
 ```
-tar zxvf ibm-b2bi-prod-2.1.1.tgz
+tar zxvf ibm-b2bi-prod-2.1.3.tgz
 ```
 
 Apply the patches included with this repo from the same directory you extracted the helm charts. There are also patches for 2.1.1 in that patch directory, but we are working with 2.1.3 of the helm charts.
@@ -216,7 +216,8 @@ sed -i "s/^kubeVersion:.*/kubeVersion: '>=v1.23.14-eks-ffeb93d'/" Chart.yaml
 
 ## Sterling Override File
 
-This is valid for installing the Sterling B2BI product.
+This is valid for installing the Sterling B2BI product. 
+
 
 [sterling-overrides-b2bi.yaml](../../../overrides/sterling-b2bi-values.yaml)
 
@@ -235,7 +236,7 @@ Add the labels that would be applied to each pod
 ```
   # for pod Affinity and podAntiAffinity
   extraLabels:
-    customlabelname: customlabelvalue
+    customlabelname: customlabelvalue 
 ```
 
 :::
