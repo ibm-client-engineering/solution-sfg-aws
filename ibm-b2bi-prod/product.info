@@ -1,9 +1,0 @@
-# (C) Copyright 2019-2022 Syncsort Incorporated. All rights reserved.
-
-productId=37f61365c78043589f4b613b9bdb9463
-productName=IBM Sterling B2B Integrator Enterprise Edition Certified Container
-nonProductId=a8dcc1f832aa472cb1037d4a1c21a4be
-nonProductName=IBM Sterling B2B Integrator Enterprise Edition Non-Prod Certified Container
-productVersion=6.1.2.2
-productMetric=VIRTUAL_PROCESSOR_CORE
-
