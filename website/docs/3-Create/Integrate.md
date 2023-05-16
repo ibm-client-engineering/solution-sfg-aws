@@ -215,6 +215,7 @@ Select **Participants > Groups** to create a group named `Group1`.
 Log out of `filegateway` and log back in as `fg_provisioner`
 
 Create two partners with the following values:
+
 Select **Participants > Partners** 
 
 |Field| Value For First Partner| Value For Second Partner|
@@ -341,6 +342,7 @@ You should see under Advanced Stats that the service in running and enabled. Cli
 ### Cluster configuration to allow inbound access
 
 So because we enabled the adapter to the AC node, we would need to add the extra ports to the overrides yaml for that service. 
+
 We are also listening to port 50039
 
 So we update our AC overrides with the following:

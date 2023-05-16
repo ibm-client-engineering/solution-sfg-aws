@@ -130,7 +130,6 @@ The following link is for the required helm charts for this installation. If you
 Download the `ibm-b2bi-prod` helm charts from the above link.
 
 Extract the `ibm-b2bi-prod-2.1.3.tgz` file
-
 ```
 tar zxvf ibm-b2bi-prod-2.1.3.tgz
 ```
@@ -139,6 +138,39 @@ Apply the patches included with this repo from the same directory you extracted 
 
 ```
 patch -p0 < path/to/repo/patches/2.1.3/*.patch -V none
+
+patching file 'ibm-b2bi-prod/templates/db-setup-job.yaml'
+patching file 'ibm-b2bi-prod/templates/ext-purge-job.yaml'
+patching file 'ibm-b2bi-prod/templates/post-delete-cleanup-job.yaml'
+patching file 'ibm-b2bi-prod/templates/postinstall-patch-ingress-job.yaml'
+patching file 'ibm-b2bi-prod/templates/preinstall-tls-setup-job.yaml'
+patching file 'ibm-b2bi-prod/values.yaml'
+patching file 'ibm-b2bi-prod/templates/ingress.yaml'
+patching file 'ibm-b2bi-prod/templates/ac-backend-service.yaml'
+patching file 'ibm-b2bi-prod/templates/asi-backend-service.yaml'
+patching file 'ibm-b2bi-prod/templates/validation.tpl'
+patching file 'ibm-b2bi-prod/values.yaml'
+
+```
+
+### Update our chart version
+
+:::note
+
+As of this writing, you will need to update the version in the `Chart.yaml` in version 2.1.3 and below.
+
+:::
+
+Update the Kubernetes version in the `Chart.yaml`
+
+```
+tar zxvf ibm-b2bi-prod-2.1.3.tgz
+```
+
+Apply the patches included with this repo from the same directory you extracted the helm charts. 
+
+```
+patch -p0 < path/to/repo/patches/*.patch
 
 patching file 'ibm-b2bi-prod/templates/db-setup-job.yaml'
 patching file 'ibm-b2bi-prod/templates/ext-purge-job.yaml'
@@ -185,6 +217,7 @@ sed -i "s/^kubeVersion:.*/kubeVersion: '>=v1.23.14-eks-ffeb93d'/" Chart.yaml
 ## Sterling Override File
 
 This is valid for installing the Sterling B2BI product. 
+
 
 [sterling-overrides-b2bi.yaml](../../../overrides/sterling-b2bi-values.yaml)
 
