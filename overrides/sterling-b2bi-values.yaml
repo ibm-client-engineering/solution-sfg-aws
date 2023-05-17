@@ -52,7 +52,7 @@ arch:
   s390x: "2 - No Preference"
 
 serviceAccount:
-  name: default
+  name: demo-sa
 
 resourcesInit:
   enabled: false
@@ -110,6 +110,7 @@ ingress:
   controller: "alb"
   annotations:
     alb.ingress.kubernetes.io/target-type: ip 
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=600
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/backend-protocol: HTTPS
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
