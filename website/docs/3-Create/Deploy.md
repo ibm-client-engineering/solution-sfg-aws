@@ -267,7 +267,14 @@ In our example, we are not using a custom domain so our ingress host entries loo
 
 Depending on whether you have installed the NGINX Ingress Controller or are using the native ALB Ingress, you will need to make the following updates to the overrides.
 
+
 #### ALB Ingress
+
+:::note
+
+You may need to set `idle_timout.timeout_seconds` high as in the ingress annotations below as an `alb` ingress can sometimes cause an Gateway error 504 if the timeout is too low.
+
+:::
 
 ```
 ingress:
@@ -276,6 +283,7 @@ ingress:
   annotations:
     alb.ingress.kubernetes.io/target-type: ip 
     alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=600
     alb.ingress.kubernetes.io/backend-protocol: HTTPS
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
     alb.ingress.kubernetes.io/certificate-arn: '<CERT ARN>'
