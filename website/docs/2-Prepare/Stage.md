@@ -43,27 +43,33 @@ Charts: <https://github.com/IBM/charts/blob/master/repo/ibm-helm/ibm-sfg-prod.md
 
 ## AWS Account
 
-- CMDLINE Client install (MacOS)
+In this section we will setup up you setup your AWS command line and credentials.
 
-Download the client
+You can run a curl command to install the AWS CLI or you can go to https://awscli.amazonaws.com/AWSCLIV2.pkg and setup the AWS CLI using GUI installer. We will be using Mac OS in this documentation, but you can find specific instruction for you OS here: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html. The following steps will demonstrate how to setup the AWS CLI through the Mac CLI. 
+
+Download the AWS CLI Client using curl. We can use the -o flag to set the output file name. In this case we set it to "AWSCLIV2.pkg"
 
 ```
 curl "https://awscli.amazonaws.com/AWSCLIV2.pkg" -o "AWSCLIV2.pkg"
 ```
 
-Install it with sudo (to use for all users)
+Next, we need to install the file we just got from the curl command. We can run the following command to install. Install it with sudo (to use for all users). The installer command is command-line tool on macOS used to install software packages. The -pkg flag specifies the package file to be installed. In this case, the package file is "AWSCLIV2.pkg," which should be located in the current directory ("./"). Last the -target option specifies the destination location for the installation. In this case, the forward slash ("/") indicates that the installation should be performed in the root directory of the macOS system.
 
 ```
 sudo installer -pkg ./AWSCLIV2.pkg -target /
 ```
 
-Now let's configure our client env
+Now that the AWS CLI is installed, let's configure our client. We can do that by running the following command. 
 
 ```
 aws configure
 ```
 
-Answer all the questions with the info you got. If you already have a profile configured, you can add a named profile to your credentials
+The command will prompt you for your AWS Access Key ID, AWS Secret Access Key, Default Region, and Default Format. If you are unsure what your Access Key and Key ID are, you can generate new keys from the AWS console. Within the console, go to Identity and Access Management (IAM). Within the IAM dashboard, there should be a section called "Manage Access Keys". Here you can create and manage your AWS access keys. If you generate a new ID and Key, remember the Key will only be displayed once. Make sure to take note of it before proceeding with the key creation.  If you already have a profile configured, you can add a named profile to your credentials
+
+If you need to edit you profile, you can use an editor and make changes. With AWS CLI, you configurations are in two files: ~/.aws/credentials and ~/.aws/config. 
+
+Lastly, we are not limited to one profile. We can have multiple users, keys, and configurations (if needed). The following shows our configuration files with two profiles. 
 
 ```tsx
 vi ~/.aws/credentials
@@ -91,7 +97,7 @@ region=us-east-1
 output=json
 ```
 
-We are also going to use some env magic to make sure we stick with the second profile
+Now that we have our AWS CLI configured, we can select which profile to use by using the following command. 
 
 ```
 export AWS_PROFILE=748107796891_AWSAdmin
