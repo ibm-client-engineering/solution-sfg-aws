@@ -4,10 +4,20 @@
         <title>IBM Client Engineering Blog</title>
         <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</link>
         <description>IBM Client Engineering Blog</description>
-        <lastBuildDate>Fri, 26 May 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Tue, 30 May 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Log - Sprint 9 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-9</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-9</guid>
+            <pubDate>Tue, 30 May 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="key-accomplishments">Key Accomplishments<a href="#key-accomplishments" class="hash-link" aria-label="Direct link to Key Accomplishments" title="Direct link to Key Accomplishments">​</a></h2><ul><li>We ran a helm chart update and it failed on the patched 2.1.1 since it was missing the pullsecret entry for the preinstall-tls job</li><li>Applied series of patch commands in order to run the helm upgrade.</li><li>Updated the helm chart to add an annotation for the pull-secret</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="challenges">Challenges<a href="#challenges" class="hash-link" aria-label="Direct link to Challenges" title="Direct link to Challenges">​</a></h2><ul><li>Received multiple errors during the helm upgrade</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="up-next">Up Next<a href="#up-next" class="hash-link" aria-label="Direct link to Up Next" title="Direct link to Up Next">​</a></h2><ul><li>Need to update patches for helm charts 2.1.1 to add pull secrets to preinstall-tls job container</li><li>We need to get the business process set up to access S3</li><li>Will need to update the service account entry in the overrides to the created S3 service account that has the role annotated.</li><li>Aneesh will re-run the helm upgrade offline and we will check in on the next working session</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li><li>This flight log is being submitted via PR 05/30/2023</li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
         <item>
             <title><![CDATA[Log - Sprint 8 🛫]]></title>
             <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-8</link>
