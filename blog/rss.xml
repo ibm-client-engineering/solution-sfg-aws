@@ -4,10 +4,20 @@
         <title>IBM Client Engineering Blog</title>
         <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</link>
         <description>IBM Client Engineering Blog</description>
-        <lastBuildDate>Fri, 24 Mar 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Fri, 26 May 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Log - Sprint 8 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-8</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-8</guid>
+            <pubDate>Fri, 26 May 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="key-accomplishments">Key Accomplishments<a href="#key-accomplishments" class="hash-link" aria-label="Direct link to Key Accomplishments" title="Direct link to Key Accomplishments">​</a></h2><ul><li>Successfully applied AWS role and policy to allow access to S3 buckets in our reference env.</li><li>Successfully demoed Sterling Secure Proxy</li><li>Introduced customer team to new Document site</li><li>Updated the ALB idle timeout in the ingress annotations in the overrides<ul><li>Verified in our reference environment that this solves a Gateway 403 error when running an S3 business process and updated our documentation. <a href="https://github.com/ibm-client-engineering/solution-sfg-aws/pull/37" target="_blank" rel="noopener noreferrer">PR#37</a></li><li>Updated the customer's ingress annotations in their overrides and applied to their environment</li></ul></li><li>Was able to verify with the customer that the following were configured and enabled:<ul><li>OIDC provider assigned to cluster</li><li>IAM policy for S3 configured for their test bucket</li><li>Service account was created in the cluster</li><li>IAM policy was attached to the appropriate role created</li><li>Service account in cluster was annotated with the role.</li></ul></li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="up-next">Up Next<a href="#up-next" class="hash-link" aria-label="Direct link to Up Next" title="Direct link to Up Next">​</a></h2><ul><li>Build a Business Process that uploads a file to the S3 bucket and verify the file was successfully uploaded. </li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
         <item>
             <title><![CDATA[Log - Sprint 7 🛫]]></title>
             <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-7</link>
