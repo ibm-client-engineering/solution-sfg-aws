@@ -78,15 +78,16 @@ div[class^="tocCollapsible"] .table-of-contents::before {
   text-decoration: none;
 }
 
-.table-of-contents__link:hover,
+.table-of-contents__link:hover{
+  text-decoration: underline;
+}
 .table-of-contents__link:hover code,
 .table-of-contents__link--active,
-.table-of-contents__link--active code {
-  color: #fdf2f2;
-  text-decoration: none;
+.table-of-contents__link--active code{
+  background: white;
 }
 .table-of-contents__link--active {
-  background: #393939;
+  background: #e8e3e3;
   padding-left: 0.3rem;
   position: relative;
 }
