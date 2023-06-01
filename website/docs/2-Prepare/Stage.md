@@ -67,7 +67,7 @@ aws configure
 
 The command will prompt you for your AWS Access Key ID, AWS Secret Access Key, Default Region, and Default Format. If you are unsure what your Access Key and Key ID are, you can generate new keys from the AWS console. Within the console, go to Identity and Access Management (IAM). Within the IAM dashboard, there should be a section called "Manage Access Keys". Here you can create and manage your AWS access keys. If you generate a new ID and Key, remember the Key will only be displayed once. Make sure to take note of it before proceeding with the key creation.  If you already have a profile configured, you can add a named profile to your credentials
 
-If you need to edit you profile, you can use an editor and make changes. With AWS CLI, you configurations are in two files: ~/.aws/credentials and ~/.aws/config. 
+If you need to edit you profile, you can use an editor and make changes. With AWS CLI, your configurations are in two files: ~/.aws/credentials and ~/.aws/config. 
 
 Lastly, we are not limited to one profile. We can have multiple users, keys, and configurations (if needed). The following shows our configuration files with two profiles. 
 
@@ -114,7 +114,15 @@ export AWS_SECRET_ACCESS_KEY=""
 
 ### Installing or updating `eksctl`
 
-For this we are going to use homebrew on MacOS.
+
+The `eksctl` command is a command-line tool used to create, manage, and operate Amazon Elastic Kubernetes Service (Amazon EKS) clusters. It simplifies the process of creating and managing Kubernetes clusters on AWS. 
+
+We can install this tool using homebrew on MacOS. Homebrew, also known as Brew, is a package manager for macOS. It allows you to easily install, manage, and update various software packages and libraries on your Mac. 
+
+The `eksctl` tool that we need is in the Weaveworks repository and is not part of the "core" packages included in Homebrew. So, we will use a Homebrew tap to add the repository to our local Homebrew. Taps allow you to extend the range of available software packages beyond what is included in the main Homebrew repository.
+
+The following `brew` commands will add Weaveworks to our local Homebrew and then install the `eksctl` tool from it.
+
 
 ```
 brew tap weaveworks/tap
