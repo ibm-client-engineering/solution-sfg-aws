@@ -2,11 +2,21 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</id>
     <title>IBM Client Engineering Blog</title>
-    <updated>2023-05-30T00:00:00.000Z</updated>
+    <updated>2023-06-01T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://ibm-client-engineering.github.io/solution-sfg-aws/blog"/>
     <subtitle>IBM Client Engineering Blog</subtitle>
     <icon>https://ibm-client-engineering.github.io/solution-sfg-aws/img/favicon.ico</icon>
+    <entry>
+        <title type="html"><![CDATA[Log - Sprint 10 🛫]]></title>
+        <id>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-10</id>
+        <link href="https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-10"/>
+        <updated>2023-06-01T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Flight Log of Co-Creation Activities]]></summary>
+        <content type="html"><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Because of the specifications of the customer's environment, it might be necessary to access the S3 bucket through a VPC Endpoint. The team is investigating the  implementation of VPC Endpoints in the Business Process. </li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="completed-today">Completed Today<a href="#completed-today" class="hash-link" aria-label="Direct link to Completed Today" title="Direct link to Completed Today">​</a></h2><ul><li>A Business Process was created for the customer's S3 bucket. </li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="issues--challenges">Issues &amp; Challenges<a href="#issues--challenges" class="hash-link" aria-label="Direct link to Issues &amp; Challenges" title="Direct link to Issues &amp; Challenges">​</a></h2><ul><li>Startup Probe threshold was already updated in the STS for the ASI server pod. However,  the ASI server pod had to be scaled up and down in order to start the pod.</li><li>There was an attempt to push a file to the customer's S3 bucket. This was unsuccessful and team suspected that the S3 bucket needed to be accessed through a VPC Endpoint. </li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="additional-notes">Additional Notes<a href="#additional-notes" class="hash-link" aria-label="Direct link to Additional Notes" title="Direct link to Additional Notes">​</a></h2><ul><li>There was a question about multiple mainframes that went through a different bucket for each, would there have to be a Business Process created for each or could it be done in one Process. </li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li><li>This flight log is being submitted via PR "06/01/2023 Documentation"</li></ul>]]></content>
+        <category label="log" term="log"/>
+        <category label="sprint" term="sprint"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Log - Sprint 9 🛫]]></title>
         <id>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-9</id>
