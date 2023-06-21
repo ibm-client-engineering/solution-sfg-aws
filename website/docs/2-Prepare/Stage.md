@@ -1147,6 +1147,255 @@ sterlingmq-ibm-mq-web            NodePort       10.100.183.242   <none>         
 ```
 In the above return output, our cluster-ip for the loadbalancer for MQ is `10.100.98.89`.
 
+## Role Based S3 access
+
+You will need the following items if you are setting this up on a pre-existing S3 bucket:
+
+1. Bucket name
+2. OIDC Provider: 
+
+If you have an OIDC provider already associated with your eks cluster, you can retrieve that info with this command:
+```
+aws eks describe-cluster \
+--name <CLUSTERNAME> \
+--query "cluster.identity.oidc.issuer" \
+--output text | sed "s/https:\/\///"
+
+oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62
+```
+3. KMS Key arn (if using KMS)
+4. Account ID
+
+The rest of these instructions assume the creation of all these elements.
+
+### Bucket Creation
+
+Let us create an S3 bucket to use for file transfers. 
+
+```
+aws s3api create-bucket \
+--bucket b2bis3bucket \
+--region us-east-1 \
+--object-ownership BucketOwnerEnforced
+```
+This creates a standard bucket in the us-east-1 region that is bucket owner enforced and default encrypted with Server-side encryption with Amazon S3 managed keys (SSE-S3).
+
+### Using KMS Encryption keys on S3 bucket (optional)
+
+By default AWS S3 buckets are encrypted with AWS SSE (server side encrypted) managed keys. But creating customer managed keys are also an option. 
+
+Create a KMS key
+
+```
+aws kms create-key
+
+{
+    "KeyMetadata": {
+        "AWSAccountId": <ACCOUNTID>,
+        "KeyId": "413d348e-1307-42a7-bb92-206017e8d81c",
+        "Arn": "arn:aws:kms:us-east-1:<ACCOUNTID>:key/413d348e-1307-42a7-bb92-206017e8d81c",
+        "CreationDate": "2023-06-20T15:58:39.275000-04:00",
+        "Enabled": true,
+        "Description": "",
+        "KeyUsage": "ENCRYPT_DECRYPT",
+        "KeyState": "Enabled",
+        "Origin": "AWS_KMS",
+        "KeyManager": "CUSTOMER",
+        "CustomerMasterKeySpec": "SYMMETRIC_DEFAULT",
+        "KeySpec": "SYMMETRIC_DEFAULT",
+        "EncryptionAlgorithms": [
+            "SYMMETRIC_DEFAULT"
+        ],
+        "MultiRegion": false
+    }
+}
+```
+
+Make a note of the returned key ARN `"Arn": "arn:aws:kms:us-east-1:<ACCOUNTID>:key/413d348e-1307-42a7-bb92-206017e8d81c",` as we will need it below if we are going to use KMS encryption.
+
+Using the "KeyId" returned above, let's create a key alias:
+
+```
+aws kms create-alias \
+--alias-name alias/example-kms-key \
+--target-key-id "413d348e-1307-42a7-bb92-206017e8d81c"
+```
+
+Now let's grab the alias ARN for the key we created:
+
+```
+aws kms list-aliases --query "Aliases[].AliasArn" | grep example-kms-key
+
+"arn:aws:kms:us-east-1:<ACCOUNTID>:alias/example-kms-key"
+```
+
+And now set the default symmetric encryption to our bucket using our new KMS key
+
+```
+aws s3api put-bucket-encryption \
+--bucket b2bis3bucket \
+--server-side-encryption-configuration '{ "Rules": [ { "ApplyServerSideEncryptionByDefault": { "SSEAlgorithm": "aws:kms", "KMSMasterKeyID": "arn:aws:kms:us-east-1:<ACCOUNTID>:alias/example-kms-key"}, "BucketKeyEnabled": true } ] }'
+```
+
+### Create an OIDC provider
+
+For the EKS cluster created, by default there will be an OIDC issuer URL associated with it. To use the IAM role for the service account, the OIDC provider needs to exist with OIDC issuer URL. To create the OIDC provider, we will use eksctl command line utility. For the record, we should have alread done this when we created our cluster.
+
+```
+eksctl utils associate-iam-oidc-provider \
+--cluster sterling \
+--approve
+```
+
+### Create an IAM policy
+
+Create the file `s3-policy.json` with the below contents. Setting the KMS actions and key arn under `Resource` is only relevant if you are using KMS keys for bucket encryption. These Actions and Resources MUST be set if you plan on using KMS.
+
+`s3-policy.json`
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:ListBucket",
+                "s3:PutObject",
+                "kms:GenerateDataKey",
+                "kms:Decrypt"
+            ],
+            "Resource": [
+                "arn:aws:kms:us-east-1:<ACCOUNTID>:key/413d348e-1307-42a7-bb92-206017e8d81c"
+                "arn:aws:s3:::b2bis3bucket/*",
+                "arn:aws:s3:::b2bis3bucket"
+            ]
+        }
+    ]
+}
+```
+
+This above policy will allow acces to objects in our S3 bucket that we've named `b2bis3bucket`. If using KMS, you need the key that is attached to your bucket associated as a resource otherwise you will not have the permissions to run `kms:GenerateDataKey` or `kms:Decrypt`.
+
+Now apply the policy
+
+```
+aws iam create-policy --policy-name s3-policy --policy-document file://s3-policy.json
+
+{
+    "Policy": {
+        "PolicyName": "s3-policy",
+        "PolicyId": "ANPA24LVTCGNY64GFVKI3",
+        "Arn": "arn:aws:iam::<ACCOUNTID>:policy/s3-policy",
+        "Path": "/",
+        "DefaultVersionId": "v1",
+        "AttachmentCount": 0,
+        "PermissionsBoundaryUsageCount": 0,
+        "IsAttachable": true,
+        "CreateDate": "2023-05-11T20:01:29+00:00",
+        "UpdateDate": "2023-05-11T20:01:29+00:00"
+    }
+}
+```
+
+Make a note of the ARN value returned for the policy created.
+
+### Create a service account
+
+Create a file `demo-service-account.yaml`. We have to create a Kubernetes service account with the name `demo-sa` in our relevant namespace using the below yaml file.
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-sa
+  namespace: sterling
+```
+
+Now apply the below command to create a service account.
+
+`kubectl apply -f demo-service-account.yaml`
+
+### Create an IAM Role and attach the policy
+
+Using your account ID, build an arn value and add it to the OIDC provider that we retrieved above. Bear in mind that `"system:serviceaccount:sterling:demo-sa"` needs to have the service account name you created in case you created it with a name other than `demo-sa`. 
+
+Create the following JSON.
+
+`demo-role-relationship.json`
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<ACCOUNT>:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62:aud": "sts.amazonaws.com",
+          "oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62:sub": "system:serviceaccount:sterling:demo-sa"
+        }
+      }
+    }
+  ]
+}
+```
+
+Now create the role
+```bash
+aws iam create-role \
+--role-name s3-role \
+--assume-role-policy-document file://demo-role-relationship.json
+
+{
+    "Role": {
+        "Path": "/",
+        "RoleName": "s3-role",
+        "RoleId": "AROA24LVTCGNY4A64ECOQ",
+        "Arn": "arn:aws:iam::<ACCOUNTID>:role/s3-role",
+        "CreateDate": "2023-05-11T20:16:17+00:00",
+        "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {
+                        "Federated": "arn:aws:iam::748107796891:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62"
+                    },
+                    "Action": "sts:AssumeRoleWithWebIdentity",
+                    "Condition": {
+                        "StringEquals": {
+                            "oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62:aud": "sts.amazonaws.com",
+                            "oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62:sub": "system:serviceaccount:demo-s3:demo-sa"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+
+Take note of the ARN value returned for the role we created `arn:aws:iam::<ACCOUNTID>:role/s3-role` as we will need it below.
+
+Attach the policy we created to the new role using the arn returned above.
+
+```
+aws iam attach-role-policy \
+--role-name s3-role \
+--policy-arn=arn:aws:iam::<ACCOUNTID>:policy/s3-policy
+```
+
+### Annotate the service account with the IAM role
+
+The service account needs to be annotated to the IAM role using the below command. This can be retrieved from the output of the role creation.
+
+```
+kubectl annotate serviceaccount -n sterling demo-sa eks.amazonaws.com/role-arn=arn:aws:iam::<ACCOUNTID>:role/s3-role
+```
 
 ## Wrap Up
 
@@ -1161,3 +1410,8 @@ In the steps above, we have performed the following:
 7. Installed the NGINX ingress controller
 8. Set up the required Security policies and RBACs
 9. Created an AWS RDS Oracle Instance and configured it
+10. Created an S3 bucket and assigned role based authentication
+
+## Links
+
+[AWS Configuring Bucket Keys](https://docs.aws.amazon.com/AmazonS3/latest/userguide/configuring-bucket-key.html)

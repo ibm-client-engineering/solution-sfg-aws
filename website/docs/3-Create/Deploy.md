@@ -441,9 +441,24 @@ global:
         ports:
           - protocol: TCP
             port: 1366
+      - name: allow-egress-to-s3
+        toSelectors:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: b2bi
+              release: sterling-b2bi
+        - ipBlock:
+            cidr: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
 // highlight-end
 ```
 
+In our above example we have added egress network policies to allow traffic from the pods to the following:
+- RDS (AWS Database services)
+- Connect:Direct
+- S3 Buckets
 
 ### TLS SecretNames for ingress
 
