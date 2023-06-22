@@ -78,7 +78,7 @@ vi ~/.aws/credentials
 aws_access_key_id =
 aws_secret_access_key =
 
-[748107796891_AWSAdmin]
+[<ACCOUNTID>_AWSAdmin]
 aws_access_key_id=
 aws_secret_access_key=
 ```
@@ -100,7 +100,7 @@ output=json
 Now that we have our AWS CLI configured, we can select which profile to use by using the following command. 
 
 ```
-export AWS_PROFILE=748107796891_AWSAdmin
+export AWS_PROFILE=<ACCOUNTID>_AWSAdmin
 ```
 
 You may also copy the following out of the aws portal and paste it into your shell
@@ -204,7 +204,7 @@ aws iam create-policy \
     "Policy": {
         "PolicyName": "AmazonEKS_EBS_CSI_Driver_Policy",
         "PolicyId": "ANPA24LVTCGN5YOUAVX2V",
-        "Arn": "arn:aws:iam::748107796891:policy/AmazonEKS_EBS_CSI_Driver_Policy",
+        "Arn": "arn:aws:iam::<ACCOUNTID>:policy/AmazonEKS_EBS_CSI_Driver_Policy",
         "Path": "/",
         "DefaultVersionId": "v1",
         "AttachmentCount": 0,
@@ -224,7 +224,7 @@ eksctl create iamserviceaccount \
   --name ebs-csi-controller-sa \
   --namespace kube-system \
   --cluster sterling-east \
-  --attach-policy-arn arn:aws:iam::748107796891:policy/AmazonEKS_EBS_CSI_Driver_Policy \
+  --attach-policy-arn arn:aws:iam::<ACCOUNTID>:policy/AmazonEKS_EBS_CSI_Driver_Policy \
   --approve \
   --role-only \
   --role-name AmazonEKS_EBS_CSI_DriverRole
@@ -235,7 +235,7 @@ Create the addon for the cluster using the `arn` returned from the command above
 eksctl create addon \
 --name aws-ebs-csi-driver \
 --cluster sterling-east \
---service-account-role-arn arn:aws:iam::748107796891:role/AmazonEKS_EBS_CSI_DriverRole \
+--service-account-role-arn arn:aws:iam::<ACCOUNTID>:role/AmazonEKS_EBS_CSI_DriverRole \
 --force
 ```
 ### Create the StorageClass
@@ -282,7 +282,7 @@ aws iam create-policy \
     "Policy": {
         "PolicyName": "AmazonEKS_EFS_CSI_Driver_Policy",
         "PolicyId": "ANPA24LVTCGN7YGDYRWJT",
-        "Arn": "arn:aws:iam::748107796891:policy/AmazonEKS_EFS_CSI_Driver_Policy",
+        "Arn": "arn:aws:iam::<ACCOUNTID>:policy/AmazonEKS_EFS_CSI_Driver_Policy",
         "Path": "/",
         "DefaultVersionId": "v1",
         "AttachmentCount": 0,
@@ -300,7 +300,7 @@ eksctl create iamserviceaccount \
     --cluster sterling-east \
     --namespace kube-system \
     --name efs-csi-controller-sa \
-    --attach-policy-arn arn:aws:iam::748107796891:policy/AmazonEKS_EFS_CSI_Driver_Policy \
+    --attach-policy-arn arn:aws:iam::<ACCOUNTID>:policy/AmazonEKS_EFS_CSI_Driver_Policy \
     --approve \
     --region us-east-1
 ```
@@ -529,7 +529,7 @@ aws iam create-policy \
     "Policy": {
         "PolicyName": "AWSLoadBalancerControllerIAMPolicy",
         "PolicyId": "ANPA24LVTCGNV55JFAAP5",
-        "Arn": "arn:aws:iam::748107796891:policy/AWSLoadBalancerControllerIAMPolicy",
+        "Arn": "arn:aws:iam::<ACCOUNTID>:policy/AWSLoadBalancerControllerIAMPolicy",
         "Path": "/",
         "DefaultVersionId": "v1",
         "AttachmentCount": 0,
@@ -550,7 +550,7 @@ eksctl create iamserviceaccount \
   --namespace=kube-system \
   --name=aws-load-balancer-controller-sterling \
   --role-name AmazonEKSsterlingLoadBalancerControllerRolesterling \
-  --attach-policy-arn=arn:aws:iam::748107796891:policy/AWSLoadBalancerControllerIAMPolicy \
+  --attach-policy-arn=arn:aws:iam::<ACCOUNTID>:policy/AWSLoadBalancerControllerIAMPolicy \
   --approve
 ```
 
