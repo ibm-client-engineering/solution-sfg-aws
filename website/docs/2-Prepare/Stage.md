@@ -1363,7 +1363,7 @@ aws iam create-role \
                 {
                     "Effect": "Allow",
                     "Principal": {
-                        "Federated": "arn:aws:iam::748107796891:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62"
+                        "Federated": "arn:aws:iam::<ACCOUNTID>:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/9FD6ABAF8C2FCBAC9E899C79ACE7DF62"
                     },
                     "Action": "sts:AssumeRoleWithWebIdentity",
                     "Condition": {
