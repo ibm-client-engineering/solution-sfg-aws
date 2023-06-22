@@ -310,7 +310,7 @@ aws acm import-certificate \
 --tags "Key=cluster,Value=sterling-mft-east"
 
 {
-    "CertificateArn": "arn:aws:acm:us-east-1:748107796891:certificate/7aa410d2-7d5d-488d-918d-a9fdfed5d77f"
+    "CertificateArn": "arn:aws:acm:us-east-1:<ACCOUNTID>:certificate/7aa410d2-7d5d-488d-918d-a9fdfed5d77f"
 }
 
 ```
