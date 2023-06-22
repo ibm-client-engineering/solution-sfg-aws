@@ -310,7 +310,7 @@ aws acm import-certificate \
 --tags "Key=cluster,Value=sterling-mft-east"
 
 {
-    "CertificateArn": "arn:aws:acm:us-east-1:748107796891:certificate/7aa410d2-7d5d-488d-918d-a9fdfed5d77f"
+    "CertificateArn": "arn:aws:acm:us-east-1:<ACCOUNTID>:certificate/7aa410d2-7d5d-488d-918d-a9fdfed5d77f"
 }
 
 ```
@@ -441,9 +441,24 @@ global:
         ports:
           - protocol: TCP
             port: 1366
+      - name: allow-egress-to-s3
+        toSelectors:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: b2bi
+              release: sterling-b2bi
+        - ipBlock:
+            cidr: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
 // highlight-end
 ```
 
+In our above example we have added egress network policies to allow traffic from the pods to the following:
+- RDS (AWS Database services)
+- Connect:Direct
+- S3 Buckets
 
 ### TLS SecretNames for ingress
 
