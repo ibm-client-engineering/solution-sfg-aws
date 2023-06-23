@@ -1266,7 +1266,7 @@ Create the file `s3-policy.json` with the below contents. Setting the KMS action
                 "kms:Decrypt"
             ],
             "Resource": [
-                "arn:aws:kms:us-east-1:<ACCOUNTID>:key/413d348e-1307-42a7-bb92-206017e8d81c"
+                "arn:aws:kms:us-east-1:<ACCOUNTID>:key/413d348e-1307-42a7-bb92-206017e8d81c",
                 "arn:aws:s3:::b2bis3bucket/*",
                 "arn:aws:s3:::b2bis3bucket"
             ]
