@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[8806],{4680:e=>{e.exports=JSON.parse('{"permalink":"/solution-sfg-aws/blog/tags/log/page/2","page":2,"postsPerPage":10,"totalPages":2,"totalCount":19,"previousPage":"/solution-sfg-aws/blog/tags/log","blogDescription":"Blog","blogTitle":"Journey Log"}')}}]);
