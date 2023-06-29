@@ -4,10 +4,20 @@
         <title>IBM Client Engineering Blog</title>
         <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</link>
         <description>IBM Client Engineering Blog</description>
-        <lastBuildDate>Tue, 27 Jun 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Wed, 28 Jun 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Log - Sprint 23 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-23</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-23</guid>
+            <pubDate>Wed, 28 Jun 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>The discussion highlights the possibility that the issue could be related to the version of IBM Sterling B2Bi being used. The customer is on version 6.1.2.1, while the lab environment is using version 6.1.2.2. However, we have downgraded our version to match the customer's and we are still not encountering the issue.</li><li>There was a discussion on how the AWS SDK is utilized in IBM Sterling B2Bi for interacting with S3. The error mentions an issue with the signature version being used. It is noted that AWS deprecated older signature versions, and the SDK should default to using version 4 signatures. The discussion speculates if the SDK version might be a factor in the error.</li></ul><p>The following troubleshooting steps were taken in our IBM reference environment:</p><ul><li>We examined the IAM policy and configurations.</li><li>We logged into to B2Bi and checked which version of the AWS SDK was being used.</li><li>Logged into the cluster and checked to be sure a token was being obtained.</li><li>Downgraded environment to 6.1.2.1 and we are still not encountering the issue.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li><p>Our team is continuing to work closely with the Dev team to troubleshoot this issue.</p></li><li><p><strong>Cases open: 1</strong></p><ul><li>Case TS013430052</li></ul></li><li><p><strong>Cases closed: 5</strong></p><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><p><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></p></li><li><p>This flight log is being submitted via PR "06/28/2023 Documentation".</p></li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
         <item>
             <title><![CDATA[Log - Sprint 22 🛫]]></title>
             <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-22</link>
