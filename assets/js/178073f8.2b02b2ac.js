@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkwebsite=self.webpackChunkwebsite||[]).push([[7838],{7692:s=>{s.exports=JSON.parse('[{"label":"log","permalink":"/solution-sfg-aws/blog/tags/log","count":23},{"label":"sprint","permalink":"/solution-sfg-aws/blog/tags/sprint","count":23}]')}}]);

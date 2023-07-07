@@ -4,10 +4,30 @@
         <title>IBM Client Engineering Blog</title>
         <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</link>
         <description>IBM Client Engineering Blog</description>
-        <lastBuildDate>Wed, 28 Jun 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Thu, 06 Jul 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Log - Sprint 25 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-25</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-25</guid>
+            <pubDate>Thu, 06 Jul 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Today the team troubleshooted the ingress and verified the jar file versions.</li><li>The team checked and noted the service account and statefulset configurations.</li><li>Altered the pod with the AWS CLI and attempted to run S3 commands but uncounted a timeout error.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li><p>The team followed up with the Customer on opening a support ticket with AWS.</p></li><li><p>Our team will continue to troubleshoot the issue and look into debugging the AWS CLI errors.</p></li><li><p><strong>Cases open: 1</strong></p><ul><li>Case TS013430052</li></ul></li><li><p><strong>Cases closed: 5</strong></p><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><p><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></p></li><li><p>This flight log is being submitted via PR "07/06/2023 Documentation".</p></li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
+        <item>
+            <title><![CDATA[Log - Sprint 24 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-24</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-24</guid>
+            <pubDate>Thu, 29 Jun 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Today there was a presentation and discussion on IBM Sterling Secure Proxy (SSP).</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li><p>Our team is taking the information we got from the Customer's team yesterday and incorporating it into our troubleshooting with the Dev team.</p></li><li><p><strong>Cases open: 1</strong></p><ul><li>Case TS013430052</li></ul></li><li><p><strong>Cases closed: 5</strong></p><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><p><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></p></li><li><p>This flight log is being submitted via PR "07/06/2023 Documentation".</p></li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
         <item>
             <title><![CDATA[Log - Sprint 23 🛫]]></title>
             <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-23</link>
