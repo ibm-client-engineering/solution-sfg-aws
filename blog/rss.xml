@@ -4,10 +4,42 @@
         <title>IBM Client Engineering Blog</title>
         <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</link>
         <description>IBM Client Engineering Blog</description>
-        <lastBuildDate>Thu, 06 Jul 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Wed, 12 Jul 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Log - Sprint 28 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-28</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-28</guid>
+            <pubDate>Wed, 12 Jul 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Today the team continued to discuss the “OIDC Not Found” error.</li><li>The Customer got feedback on the signature issue from AWS and the team discussed the response.</li><li>AWS provided some suggested documentation on the matter:
+<a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingAWSSDK.html#specify-signature-version" target="_blank" rel="noopener noreferrer">https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingAWSSDK.html#specify-signature-version</a></li><li>We checked the Customer's environment and verified an S3 endpoint exists.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li>Currently the customer is working with his team to implement the appropriate role, policy, and OIDC within the correct AWS account.</li><li><strong>Cases open: 1</strong><ul><li>Case TS013430052</li></ul></li><li><strong>Cases closed: 5</strong><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li><li>This flight log is being submitted via PR "07/12/2023 Documentation".</li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
+        <item>
+            <title><![CDATA[Log - Sprint 27 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-27</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-27</guid>
+            <pubDate>Tue, 11 Jul 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Today the team continued to discuss the “OIDC Not Found” error.</li><li>The Customer said that he opened a ticket with AWS, and they gave him feedback on the error.</li><li>AWS provided some suggested documentation on the matter:
+<a href="https://aws.amazon.com/blogs/containers/cross-account-iam-roles-for-kubernetes-service-accounts/" target="_blank" rel="noopener noreferrer">https://aws.amazon.com/blogs/containers/cross-account-iam-roles-for-kubernetes-service-accounts/</a></li><li>It was suggested that the OIDC be created in the same account as the destination S3 bucket.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li>The Customer said he was working on this with his team and would update us on their progress.</li><li>The Customer also mentioned that there was an open AWS ticket on the S3 signature issue awaiting feedback.</li><li><strong>Cases open: 1</strong><ul><li>Case TS013430052</li></ul></li><li><strong>Cases closed: 5</strong><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li><li>This flight log is being submitted via PR "07/12/2023 Documentation".</li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
+        <item>
+            <title><![CDATA[Log - Sprint 26 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-26</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-26</guid>
+            <pubDate>Mon, 10 Jul 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>The team is attempting to use the AWS CLI image to debug S3 connectivity.</li><li>The team worked on troubleshooting an “No Open IDConnect found” error that occurs when running commands from the AWS CLI image.</li><li>The Customer created a VPC endpoint for STS and following this implementation that we began experiencing the OIDC error when using the AWS CLI client within the AWS CLI pod.</li><li>The team checked the EKS cluster and there were OIDC providers listed in the cluster.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li><p>The Customer said he would add this issue to the AWS ticket for further troubleshooting while we continue to research the error.</p></li><li><p><strong>Cases open: 1</strong></p><ul><li>Case TS013430052</li></ul></li><li><p><strong>Cases closed: 5</strong></p><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><p><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></p></li><li><p>This flight log is being submitted via PR "07/12/2023 Documentation".</p></li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
         <item>
             <title><![CDATA[Log - Sprint 25 🛫]]></title>
             <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-25</link>
