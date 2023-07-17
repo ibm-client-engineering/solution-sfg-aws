@@ -4,10 +4,40 @@
         <title>IBM Client Engineering Blog</title>
         <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</link>
         <description>IBM Client Engineering Blog</description>
-        <lastBuildDate>Wed, 12 Jul 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Mon, 17 Jul 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Log - Sprint 31 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-31</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-31</guid>
+            <pubDate>Mon, 17 Jul 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Today the team discussed the role and policy associated with the Service Account and the OIDC.</li><li>We discussed the changes that were made to the policy and the trust relationship that enabled the AWS CLI image and B2Bi to have S3 access.</li><li>The team was able to push a file to S3 from Sterling B2Bi and decided to try to work through other use cases.</li><li>The team did encounter a “Connection Refused” error. The pod endpoints are not being propagated to the backend load balancer service and the Team is investigating.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li>We will continue to examine the changes that were made that enabled the S3 connection and begin an RCA.</li><li>The team will continue to troubleshoot and investigate the error.</li><li><strong>Cases open: 1</strong><ul><li>Case TS013430052</li></ul></li><li><strong>Cases closed: 5</strong><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li><li>This flight log is being submitted via PR "07/17/2023 Documentation".</li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
+        <item>
+            <title><![CDATA[Log - Sprint 30 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-30</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-30</guid>
+            <pubDate>Fri, 14 Jul 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Today the team discussed the role and policy associated with the Service Account and the OIDC. </li><li>We discussed the changes that were made to the policy and examined the pod and s3 bucket.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li>We will continue to examine the changes that were made to the policy and Customer's environment</li><li><strong>Cases open: 1</strong><ul><li>Case TS013430052</li></ul></li><li><strong>Cases closed: 5</strong><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li><li>This flight log is being submitted via PR "07/17/2023 Documentation".</li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
+        <item>
+            <title><![CDATA[Log - Sprint 29 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-29</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-29</guid>
+            <pubDate>Thu, 13 Jul 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work In Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work In Progress" title="Direct link to Work In Progress">​</a></h2><ul><li>Today the team discussed the OIDC and the new error that occurred after the OIDC was setup in the correct AWS account.</li><li>There was an “Access Denied when calling the AssumeRoleWithWebIdentity” error.</li><li>The Customer said he added this error to the ticket he has with AWS.</li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="tracking">Tracking<a href="#tracking" class="hash-link" aria-label="Direct link to Tracking" title="Direct link to Tracking">​</a></h2><ul><li>We are going to research the error while awaiting feedback on the open ticket with AWS.</li><li><strong>Cases open: 1</strong><ul><li>Case TS013430052</li></ul></li><li><strong>Cases closed: 5</strong><ul><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/17" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#17</a></li><li>This flight log is being submitted via PR "07/17/2023 Documentation".</li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
         <item>
             <title><![CDATA[Log - Sprint 28 🛫]]></title>
             <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-28</link>
