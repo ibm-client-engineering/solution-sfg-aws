@@ -463,7 +463,11 @@ Steps 2-5 will be done within the same AWS account.
 
 ## Modify ~/.aws/credentials file
 
-Since we will be working with multiple AWS accounts, we will need to modify the AWS CLI credentials file to setup multiple users. If your AWS CLI is already configured, you can skip this step. This process is pretty straightforward:
+:::note
+The steps mentioned in this section are intended to configure the AWS CLI for multiple user profiles within different AWS accounts. They are not directly part of the KMS S3 cross account solution. This will simply allow you to run commands in different accounts. If you intend to use the AWS Console or already have your AWS CLI configured, you can skip this step. 
+:::
+
+Since we will be working with multiple AWS accounts, we will need to modify the AWS CLI credentials file to setup multiple users. This process is pretty straightforward:
 
 `vim ~/.aws/credentials` or use a text editor of your choice to modify the credentials file. 
 
@@ -696,6 +700,11 @@ Now that we have a trust policy to our EKS OIDC Identity Provider, we can create
 
 Lets now add permissions to this role. By default, users and roles within AWS have no permissions. Remember the goal is to access KMS encrypted S3 buckets that are in different accounts. So we will need at minimum KMS and S3 permissions. Now there is a couple of ways of adding permissions to a role. You can do either an inline policy or attach a managed policy. With inline, the policy is built into the role and can't be used on other entities. On the other hand, when you create and attach a managed policy, that policy exists outside of the role/entity. You can reuse this policy on multiple entities and altering this policy will alter the permissions for all entities that have this policy attached. We will cover both.
 
+:::note
+This section discusses inline policies and managed policies. You do not need to implement both. 
+:::
+
+
 To create any type of policy, we first need to create a policy document. So using the editor of your choice, create a JSON policy document. Here is an example document:
 
 ```
@@ -733,7 +742,7 @@ To view an inline policy for a role, use the command:
 
 `aws iam get-role-policy --role-name ROLE_NAME --policy-name POLICY_NAME --profile YOUR_PROFILE`
 
-If you need a refresher on the name of the policy, you can view the roles attached to a role with the command:
+If you need a refresher on the name of the policy, you can view the policies attached to a role with the command:
 
 ` aws iam list-role-policies --role-name YOUR_ROLE_NAME --query PolicyNames --output text --profile YOUR_PROFILE`
 
@@ -835,7 +844,7 @@ If there is a bucket policy attached, this command will output the policy. If th
             ],
             "Resource": [
                 "arn:aws:s3:::YOUR_BUCKET_NAME/*",
-                "arn:aws:s3:::**YOUR_BUCKET_NAME**"
+                "arn:aws:s3:::YOUR_BUCKET_NAME"
             ]
         }
     ]
