@@ -1,7 +1,7 @@
 ---
 sidebar_position: 1
 slug: /
-title: 'Flight Path'
+title: 'Adoption Journey'
 full_website: https://ibm-client-engineering.github.io/solution-sfg-aws/
 ---
 
@@ -11,7 +11,7 @@ full_website: https://ibm-client-engineering.github.io/solution-sfg-aws/
 
 ### This is a Solution Blueprint
 
-This _living document_ delivers a "flight path" or adoption journey using IBM Client Engineering's Value Engineering Method. The flight path is an open blueprint for a successful implementation for a _Proof of Concept_ aimed at adopting **IBM Sterling File Gateway on Amazon Elastic Kubernetes Service (EKS)** at one of IBM's customers. The solution aims to address the business need to host a cloud-ready data exchange platform using Sterling File Gateway and provide a scalable, secure and efficient file exchange solution.
+This _living document_ delivers an adoption journey using IBM Client Engineering's Value Engineering Method. The journey is an open blueprint for a successful implementation for a _Proof of Concept_ aimed at adopting **IBM Sterling File Gateway on Amazon Elastic Kubernetes Service (EKS)** at one of IBM's customers. The solution aims to address the business need to host a cloud-ready data exchange platform using Sterling File Gateway and provide a scalable, secure and efficient file exchange solution.
 
 [![IBM Client Engineering](https://github-readme-stats.vercel.app/api/pin/?username=ibm-client-engineering&repo=solution-filenet-aws)](https://github.com/ibm-client-engineering/solution-filenet-aws)
 

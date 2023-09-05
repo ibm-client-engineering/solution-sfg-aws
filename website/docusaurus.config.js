@@ -145,7 +145,7 @@ async function createconfig() {
             //   position: 'left',
             //   label: 'Section',
             // },
-            {to: '/', label: 'Flight Path', position: 'right'},
+            {to: '/', label: 'Adoption Journey', position: 'right'},
             {to: 'blog', label: 'Flight Logs', position: 'right'},
             {
               href: 'https://github.com/ibm-client-engineering/solution-sfg-aws',
