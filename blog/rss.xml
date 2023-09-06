@@ -4,10 +4,20 @@
         <title>IBM Client Engineering Blog</title>
         <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog</link>
         <description>IBM Client Engineering Blog</description>
-        <lastBuildDate>Mon, 28 Aug 2023 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Thu, 31 Aug 2023 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>en</language>
+        <item>
+            <title><![CDATA[Log - Sprint 45 🛫]]></title>
+            <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-45</link>
+            <guid>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-45</guid>
+            <pubDate>Thu, 31 Aug 2023 00:00:00 GMT</pubDate>
+            <description><![CDATA[Flight Log of Co-Creation Activities]]></description>
+            <content:encoded><![CDATA[<h2 class="anchor anchorWithStickyNavbar_LWe7" id="work-in-progress">Work in Progress<a href="#work-in-progress" class="hash-link" aria-label="Direct link to Work in Progress" title="Direct link to Work in Progress">​</a></h2><ul><li>The team help troubleshoot an authentication issue when transferring files from the mainframe to SFG. It appears the casing on the partner’s name was being changed from lower case to upper case.</li><li>The team thinks that this was being done on the mainframe side. They created a new uppercase partner for testing and viewed documentation on it.</li><li><a href="https://www.ibm.com/support/pages/how-keep-uppercase-or-lowercase-connectdirect-process" target="_blank" rel="noopener noreferrer">https://www.ibm.com/support/pages/how-keep-uppercase-or-lowercase-connectdirect-process</a></li></ul><h2 class="anchor anchorWithStickyNavbar_LWe7" id="currently-tracking">Currently Tracking<a href="#currently-tracking" class="hash-link" aria-label="Direct link to Currently Tracking" title="Direct link to Currently Tracking">​</a></h2><ul><li><p>The client is continuing to work with his team to implement and test the S3 cross account solution.</p></li><li><p>The client and his team will test the mainframe to SFG solution.</p></li><li><p>The team is pausing upcoming sessions until further notice. </p></li><li><p><strong>Cases open: 0</strong></p></li><li><p><strong>Cases closed: 8</strong></p><ul><li>Case TS013942206</li><li>Case TS013825812</li><li>Case TS013430052</li><li>case TS012906539</li><li>case TS013042929</li><li>case TS012831699</li><li>case TS012704616</li><li>case TS012702956  </li></ul></li><li><p><a href="https://zenhub.ibm.com/workspaces/st5-action-information-center-64343620d0cfd0000f03a114/issues/ibm-client-engineering/solution-sfg-aws/10" target="_blank" rel="noopener noreferrer">ibm-client-engineering/solution-sfg-aws#10</a></p></li><li><p>This flight log is being submitted via PR "09/05/2023 Documentation"</p></li></ul>]]></content:encoded>
+            <category>log</category>
+            <category>sprint</category>
+        </item>
         <item>
             <title><![CDATA[Log - Sprint 44 🛫]]></title>
             <link>https://ibm-client-engineering.github.io/solution-sfg-aws/blog/flight-log-44</link>
