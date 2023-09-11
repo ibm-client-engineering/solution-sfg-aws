@@ -435,11 +435,116 @@ If you run into any helm error when adding the extra ports definitions that has 
 
 :::
 
-# Sterling File Gateway - Access Multiple KMS Encrypted S3 Buckets Across Accounts
+### Configuring a Sterling Connect:Direct Server Adapter
+
+The Connect:Direct server adapter receives and processes requests from remote Connect:Direct nodes. Files are copied to and from a mailbox or a business process to and from Connect:Direct nodes.
+
+However, before we configure the Connect:Direct Server Adapter, there are other components that need to be configured. We must first create a Connect:Direct node and a Connect:Direct Netmap. Then using a Connect:Direct Cross-Reference, we will associate the node with the Netmap.
+
+To begin, log into the Sterling B2Bi Admin console. Then from the Administration Menu on the left hand side, navigate to Deployment -> Adapter Utilities -> Sterling Connect:Direct -> Nodes. In the box named create, you should see "New Node". Click the "Go!" button on the right side of the box.
+
+![Connect Direct Node Location.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/755a223f-21e7-4181-8ec6-66bbc42b3d2d)
+
+On the next page, enter the values for your node. We will need to set:
+
+- Sterling Connect:Direct Server Node Name - The node name for the Sterling Connect:Direct server.
+- Sterling Connect:Direct Server Host - The host name or IP address for the Sterling Connect:Direct server.
+- Sterling Connect:Direct Server Port - The host port number for the Sterling Connect:Direct server.
+- Max locally initiated (pnode) sessions allowed: Set to 10
+- Max remotely initiated (snode) sessions allowed: Set to 10
+- Leave the remaining fields/options blank or with their default value. 
+
+At the bottom of the page select "next". 
+
+![Connect Direct Node Settings.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/ffdbe66a-a137-4c66-a387-2f4d0cb7a499)
+
+The following page will then display all your setting choices for a final review. If everything was correctly entered select "Finish" at the bottom.
+
+![Connect Direct Node Confirmation.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/5683a817-4176-4244-a5b8-93d065a85ce1)
+
+
+:::note
+Blue fields are always mandatory and can not be left blank. 
+:::
+
+
+Now lets move on and create a Netmap. From the Administration Menu on the left hand side, navigate to Deployment -> Adapter Utilities -> Sterling Connect:Direct -> Netmaps. In the box named create, you should see "New Netmap". Click the "Go!" button on the right side of the box.
+
+![Connect Direct Netmap Location.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/df5438c2-9680-42d8-9d6f-4ea4220687e8)
+
+On the next page, enter the values for your Netmap. We will need to set:
+
+- Netmap Name - The Sterling Connect:Direct netmap name.
+- Netmap Description - Enter a description of your Netmap
+
+At the bottom of the page select "next". 
+
+![Connect Direct Netmap Settings.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/7a845fb5-a47e-4d78-a036-2380d6baaa98)
+
+The following page will then display all your setting choices for a final review. If everything was correctly entered select "Finish" at the bottom.
+
+![Connect Direct Netmap Confirmation.png](https://zenhub.ibm.com/images/58adc1fd5a3922f84995d86b/a4be4512-7253-47c7-92a6-ca7758851840)
+
+Now lets add our node to the Netmap using Connect:Direct Cross-Reference. From the Administration Menu on the left hand side, navigate to Deployment -> Adapter Utilities -> Sterling Connect:Direct -> Netmap X-REF. In the box named "Create or Modify", you should see "Netmap Cross Reference". Click the "Go!" button on the right side of the box.
+
+![Connect Direct X-REF Location.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/c3e2c1ac-e1ae-457e-94fc-f8561e396498)
+
+The next page will ask you to select a Netmap. The Netmap we just created should already appear in the drop down box. Verify the Netmap then select "next" at the bottom.
+
+![Connect Direct X-REF Setting-1.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/ec16d171-0226-4b4d-96f5-7ba28b7a2f4d)
+
+On this next page "Add Cross References", select the green plus next to "New Node". 
+
+![Connect Direct X-REF Setting-2.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/25ecba57-f450-4118-991f-c00df0119163)
+
+A pop-up window named "Add New Node" should appear. This will ask you to select the node you want to add to the Netmap. The node we created should appear in the box. Select it and select "save" at the bottom. 
+
+![Connect Direct X-REF Setting-3.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/ae98dea7-4529-44d8-8015-b988becba28a)
+
+The node we selected should now appear in the list of nodes. At the bottom of the page select "next". 
+
+![Connect Direct X-REF Setting-4.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/4463daf3-4787-463c-850d-a0c84761a2b9)
+
+The following page will then display all your setting choices for a final review. If everything was correctly entered select "Finish" at the bottom.
+
+![Connect Direct X-REF Confirmation.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/431677ac-07ee-41b2-b63d-68f685c19ad2)
+
+Now finally, lets move on to creating a Sterling Connect:Direct Server Adapter. From the Administration Menu on the left hand side, navigate to Deployment -> Services -> Configuration. In the box named "Create", you should see "New Service". Click the "Go!" button on the right side of the box.
+
+![Connect Direct Adapter Location.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/e6d1573a-01f1-4a8e-984c-6617fb33be6c)
+
+The next screen will prompt you for which service type to configure. In the box next to "Service Type" enter "Sterling Connect:Direct Server Adapter" and then select "next" at the bottom. 
+
+![Connect Direct Adapter Setting-1.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/463b1f28-0741-4556-98ab-df0b6f71b2ae)
+
+The next page will ask you to name the adapter and give a description. Fill out these fields and leave everything else default. Then select "next" at the bottom.
+
+![Connect Direct Adapter Setting-2.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/a8822973-ef8e-4e66-95dc-3704da63033b)
+
+The next page will ask you to configure general settings for the adapter. On this page we only need to enter a value for "Sterling Connect:Direct Server Node Name". Generally, you will use the same name that you used for the adapter name. Enter that value in the box. Leave the rest of the settings with the default values and click "next" at the bottom. 
+
+![Connect Direct Adapter Setting-3.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/ff051835-d180-41ba-bb7d-4ba1056818d3)
+
+Keep selecting "next" at the bottom leaving all values default until you get to the screen that references Netmap.
+
+You should see an option named "Sterling Connect:Direct Netmap Name" followed by a drop down box. Within the drop down box, you should see the Netmap we created earlier. Verify the value then select "next" at the bottom. 
+
+![Connect Direct Adapter Setting-4.png](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/408dbd6b-9dda-43cd-bcbc-5115a9301055)
+
+The following page will then display all your setting choices for a final review. If everything was correctly entered select "Finish" at the bottom. And with that you have configured your Sterling Connect:Direct Server Adapter. If you need more information on the specific settings and options, please reference the following:
+
+- Connect:Direct Node Settings: https://www.ibm.com/docs/en/b2b-integrator/5.2?topic=entry-creating-sterling-connectdirect-nodes
+- Connect:Direct Netmap Settings: https://www.ibm.com/docs/en/b2b-integrator/5.2?topic=entry-creating-sterling-connectdirect-netmaps
+- Direct:Connect Netmap Cross-Reference Settings: https://www.ibm.com/docs/en/b2b-integrator/5.2?topic=entry-creating-connectdirect-netmap-cross-reference
+-  Connect:Direct Server Adapter Settings: https://www.ibm.com/docs/en/b2b-integrator/5.2?topic=entry-creating-connectdirect-netmap-cross-reference
+
+
+
+## Sterling File Gateway - Access Multiple KMS Encrypted S3 Buckets Across Accounts
 
 There may be situations where B2Bi needs to access multiple s3 buckets and these buckets may also reside within different AWS accounts. This guide will outline the process of creating, updating, and setting up IAM roles, policies, and resource-based policies. Then using these permissions to allow Sterling B2Bi running on EKS to interact with multiple s3 buckets that are residing in different AWS accounts. This guide assumes the prerequisites of having an OIDC provider in the EKS cluster and a service account that is attached to the pod B2Bi is running on. You also need CLI programmatic access to the EKS cluster and the AWS accounts that the EKS, S3 buckets, and KMS keys reside in. 
 
-## Solution Overview 
+### Solution Overview 
 
 ![s3 multiple diagram.jpg](https://zenhub.ibm.com/images/6442f46ac0371b5acaba3fc4/bdea7150-ce52-4960-ae89-c6af17dcd38d)
 
@@ -461,7 +566,7 @@ This document will walk through the following steps:
 Steps 2-5 will be done within the same AWS account.
 :::
 
-## Modify ~/.aws/credentials file
+### Modify ~/.aws/credentials file
 
 :::note
 The steps mentioned in this section are intended to configure the AWS CLI for multiple user profiles within different AWS accounts. They are not directly part of the KMS S3 cross account solution. This will simply allow you to run commands in different accounts. If you intend to use the AWS Console or already have your AWS CLI configured, you can skip this step. 
@@ -510,7 +615,7 @@ While interacting with the ~/.aws/credentials file and making adjustments to pro
 
 `aws eks update-kubeconfig --name CLUSTER_NAME --region AWS_REGION --profile PROFILE_NAME`
 
-## Link EKS OIDC Identity Provider to AWS Account
+### Link EKS OIDC Identity Provider to AWS Account
 
 IAM identity providers enable you to manage external identities outside of AWS, and IAM OIDC identity providers define external identity provider services that follow the OpenID Connect (OIDC) standard. In our case, we're utilizing an OIDC identity provider within our EKS cluster. To ensure AWS can authenticate requests from this provider, we must integrate it into our AWS Account. So to start, pick the AWS account you want to setup your IAM role and identity provider. Once you have decided on an account, lets link the identity provider.
 
@@ -659,7 +764,7 @@ We can check to see if the identity provider was setup in the AWS account by usi
 
 `aws iam list-open-id-connect-providers --profile YOUR_PROFILE`
 
-## Create an IAM Role With Trust Relationship
+### Create an IAM Role With Trust Relationship
 
 Now that we linked the OIDC Identity Provider from the EKS cluster to an AWS account, we can create a role that a service account within the EKS cluster can assume. In this document, we won't go under the hood and discuss the intricacies of how a service account, OIDC Identity Provider, and AWS IAM interact and authenticate. Just know that B2Bi is running in a pod. That pod uses a service account as an identity and that service account is an authenticated user through the EKS OIDC Identity Provider. We linked the EKS OIDC Identity Provider to an AWS Account in the previous section and now that service account can assume a role in the AWS account. 
 
@@ -696,7 +801,7 @@ Now that we have a trust policy to our EKS OIDC Identity Provider, we can create
 
 `aws iam create-role --role-name YOUR_ROLE_NAME --assume-role-policy-document file://YOUR_TRUST_POLICY.json --profile YOUR_PROFILE`
 
-## Add policies and permissions to IAM role 
+### Add policies and permissions to IAM role 
 
 Lets now add permissions to this role. By default, users and roles within AWS have no permissions. Remember the goal is to access KMS encrypted S3 buckets that are in different accounts. So we will need at minimum KMS and S3 permissions. Now there is a couple of ways of adding permissions to a role. You can do either an inline policy or attach a managed policy. With inline, the policy is built into the role and can't be used on other entities. On the other hand, when you create and attach a managed policy, that policy exists outside of the role/entity. You can reuse this policy on multiple entities and altering this policy will alter the permissions for all entities that have this policy attached. We will cover both.
 
@@ -794,7 +899,7 @@ To view the policies attached to a role, use the command:
 Inline policies do not appear in this list.
 :::
 
-## Attach IAM Role to Service Account
+### Attach IAM Role to Service Account
 
 Now that we have an IAM Role configured and have given it permissions, we now need to tell the service account connected to the B2Bi pod to use this role. To do so, we use an annotation on the service account. Use the following command to annotate the service account with the role:
 
@@ -810,7 +915,7 @@ To view and verify the annotation on the service account, you can use the comman
 
 `kubectl describe sa SERVICE_ACCOUNT_NAME`
 
-## Modifying resource-based policies for S3 buckets and KMS keys.
+### Modifying resource-based policies for S3 buckets and KMS keys.
 
 In this section, we will be modifying the resource-based policy for an S3 bucket (bucket policy) and a KMS key (key policy). The buckets and keys should be in a different account than the role we created. Since we are dealing with different accounts, make sure to use the correct profile `--profile <YOUR_PROFILE>` for the account the bucket and key reside. 
 
