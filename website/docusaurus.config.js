@@ -130,7 +130,7 @@ async function createconfig() {
           },
         },
         navbar: {
-          title: '| IBM Sterling File Gateway on AWS EKS',
+          title: '| Adopting IBM Sterling File Gateway on Amazon EKS',
           logo: {
             alt: 'My Site Logo',
             src: 'img/logo.svg',
